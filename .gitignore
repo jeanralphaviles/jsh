@@ -1,0 +1,5 @@
+.DS_Store
+y.output
+lex.yy.c
+y.tab.*
+main

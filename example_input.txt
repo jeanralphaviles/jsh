@@ -1,0 +1,1 @@
+echo "_ hello&" | awk -F " " '{print $2}' > out.txt && date >> out.txt
