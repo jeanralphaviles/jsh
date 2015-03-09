@@ -1,4 +1,5 @@
-%{ #include <stdio.h>
+%{ 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -12,10 +13,8 @@ int yywrap() {
         return 1;
 }
 
-main() {
-  while(1)
-        yyparse();
-}
+
+
 %}
 
 %union {
@@ -23,8 +22,7 @@ main() {
 }
 
 /* -------------------------------------------------------
-   The grammar symbols
-   ------------------------------------------------------- */
+   The grammar symbols ------------------------------------------------------- */
 %token<string>  WORD
 %token<string>  ASSIGNMENT_WORD
 %token<string>  NAME
@@ -59,13 +57,12 @@ main() {
    ------------------------------------------------------- */
 %start  complete_command
 %%
-complete_command   : pipe_sequence
+complete_command   : pipe_sequence 
                    | complete_command sequence_separator pipe_sequence
                    | complete_command '&'
                    | complete_command NEWLINE
-                   | NEWLINE
                    ;
-pipe_sequence      : single_command
+pipe_sequence      : single_command { printf("pipe_sequence\n"); }
                    | pipe_sequence '|' single_command
                    ;
 sequence_separator : AND_IF
@@ -74,7 +71,7 @@ sequence_separator : AND_IF
 single_command     : cmd_name
                    | cmd_name cmd_suffix 
                    ;
-cmd_name           : WORD
+cmd_name           : WORD {printf("Hey!\n"); }
                    ;
 cmd_suffix         :            io_redirect
                    | cmd_suffix io_redirect

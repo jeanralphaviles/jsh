@@ -1,5 +1,5 @@
 all: lex.yy.c y.tab.c y.tab.h
-	cc lex.yy.c y.tab.c -o main
+	cc lex.yy.c y.tab.c main.c -o main
 
 y.tab.h: y.tab.c
 
