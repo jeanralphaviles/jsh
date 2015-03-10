@@ -61,8 +61,9 @@ complete_command   : pipe_sequence
                    | complete_command sequence_separator pipe_sequence
                    | complete_command '&'
                    | complete_command NEWLINE
+		   | NEWLINE
                    ;
-pipe_sequence      : single_command { printf("pipe_sequence\n"); }
+pipe_sequence      : single_command 
                    | pipe_sequence '|' single_command
                    ;
 sequence_separator : AND_IF
@@ -71,7 +72,7 @@ sequence_separator : AND_IF
 single_command     : cmd_name
                    | cmd_name cmd_suffix 
                    ;
-cmd_name           : WORD {printf("Hey!\n"); }
+cmd_name           : WORD { printf("Hey!\n"); return; }
                    ;
 cmd_suffix         :            io_redirect
                    | cmd_suffix io_redirect

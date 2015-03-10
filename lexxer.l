@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include "y.tab.h"
 extern int linenum;
+// 
 %}
 
 %%
+\n+                     { printf("I think this is where the problem is!\n"); ++linenum; return NEWLINE; }
 (bye)|EOF               { exit(EXIT_SUCCESS); }
-\n+                     { ++linenum; return 0; }
 "&&"                    { return AND_IF; }
 "||"                    { return OR_IF; }
 ";;"                    { return DSEMI; }
@@ -36,6 +37,6 @@ in                      { return In; }
 "!"                     { return Bang; }
 [a-zA-Z][a-zA-Z0-9]*    { yylval.string = strdup(yytext); return WORD; }
 [0-9]+[<|>]             { return IO_NUMBER; } 
-[ \t]                   { ; } /* Ignore Whitespace */
+[ \t\r]+                   { printf("Whitespace\n"); } /* Ignore Whitespace */
 .                       { ; } /* No Match */
 %%
