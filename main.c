@@ -6,6 +6,7 @@
 extern int yyparse();
 extern int yylex();
 extern int yy_scan_string(const char *);
+extern int yy_delete_buffer(int buf);
 
 int main(int argc, char* argv[]) {
 	//char* cmd;
