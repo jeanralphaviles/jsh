@@ -6,7 +6,7 @@ extern int linenum;
 %}
 
 %%
-\n+                     { printf("I think this is where the problem is!\n"); ++linenum; return NEWLINE; }
+\n+			{ return NEWLINE; }
 (bye)|EOF               { exit(EXIT_SUCCESS); }
 "&&"                    { return AND_IF; }
 "||"                    { return OR_IF; }
@@ -37,6 +37,6 @@ in                      { return In; }
 "!"                     { return Bang; }
 [a-zA-Z][a-zA-Z0-9]*    { yylval.string = strdup(yytext); return WORD; }
 [0-9]+[<|>]             { return IO_NUMBER; } 
-[ \t\r]+                   { printf("Whitespace\n"); } /* Ignore Whitespace */
+[ \t\r]+		{ ; } /* Ignore Whitespace */
 .                       { ; } /* No Match */
 %%

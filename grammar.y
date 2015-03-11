@@ -72,7 +72,7 @@ sequence_separator : AND_IF
 single_command     : cmd_name
                    | cmd_name cmd_suffix 
                    ;
-cmd_name           : WORD { printf("Hey!\n"); return; }
+cmd_name           : WORD 
                    ;
 cmd_suffix         :            io_redirect
                    | cmd_suffix io_redirect
