@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include "y.tab.h"
 extern int linenum;
-// 
+//  
 %}
 
 %%
-\n+			{ return NEWLINE; }
 (bye)|EOF               { exit(EXIT_SUCCESS); }
+\n+			{ ++linenum; return NEWLINE; }
 "&&"                    { return AND_IF; }
 "||"                    { return OR_IF; }
 ";;"                    { return DSEMI; }
