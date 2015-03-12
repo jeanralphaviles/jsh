@@ -1,9 +1,9 @@
-%{ 
+%{
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-int linenum = 1; 
+int linenum = 1;
 void yyerror(const char *str) {
         fprintf(stderr,"line: %d error: %s\n", linenum, str);
 }
@@ -11,9 +11,6 @@ void yyerror(const char *str) {
 int yywrap() {
         return 1;
 }
-
-
-
 %}
 
 %union {
@@ -42,7 +39,7 @@ int yywrap() {
 %token<string>  Case    Esac    While    Until    For
 /*              'case'  'esac'  'while'  'until'  'for'   */
 /* These are reserved words, not operator tokens, and are
-   recognized when reserved words are recognized. */ 
+   recognized when reserved words are recognized. */
 %token<string>  Lbrace    Rbrace    Bang
 /*              '{'       '}'       '!'   */
 %token<string>  In
@@ -56,20 +53,20 @@ int yywrap() {
    ------------------------------------------------------- */
 %start  complete_command
 %%
-complete_command   : pipe_sequence 
-                   | complete_command sequence_separator pipe_sequence 
-		   | complete_command '&'
-		   | complete_command NEWLINE
-		   | NEWLINE 
+complete_command   : pipe_sequence
+                   | complete_command sequence_separator pipe_sequence
+                   | complete_command '&'
+                   | complete_command NEWLINE
+                   | NEWLINE
                    ;
-pipe_sequence      : single_command 
+pipe_sequence      : single_command
                    | pipe_sequence '|' single_command
                    ;
 sequence_separator : AND_IF
                    | OR_IF
                    ;
 single_command     : cmd_name
-                   | cmd_name cmd_suffix 
+                   | cmd_name cmd_suffix
                    ;
 cmd_name           : WORD { printf("Command Name\n"); }
                    ;
