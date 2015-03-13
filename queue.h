@@ -7,11 +7,22 @@ struct q_node {
   void *data;
 };
 
-// Assumes ownership of elements enqueued
-void enqueue(struct q_node*, void*);
-void dequeue(struct q_node*);
-// Retains ownership of elements returned
-void* front(struct q_node*);
-int size(struct q_node*);
+struct queue {
+  struct q_node* head;
+};
+
+// --Queue Functions--
+void enqueue(struct queue*, void*);
+void dequeue(struct queue*);
+void* front(struct queue*);
+int size(struct queue*);
+struct queue* createQueue();
+
+// --Queue Node Functions--
+void enqueueQnode(struct q_node*, void*); // Assumes ownership of elements enqueued
+struct q_node* dequeueQnode(struct q_node*); // Returns new head
+void* frontQnode(struct q_node*); // Retains ownership of elements returned
+int sizeQnode(struct q_node*);
+struct q_node* createQueueNode(void*); // Retains ownership of arugment
 
 #endif

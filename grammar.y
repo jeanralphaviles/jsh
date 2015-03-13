@@ -2,8 +2,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ast.h"
+#include "defines.h"
 
 int linenum = 1;
+struct AstRoot* astRoot; // Contains parsed command
+
 void yyerror(const char *str) {
         fprintf(stderr,"line: %d error: %s\n", linenum, str);
 }
@@ -14,7 +18,11 @@ int yywrap() {
 %}
 
 %union {
+  int integer;
   char* string;
+  struct AstRoot* astRoot;
+  struct AstPipeSequence* astPipeSequence;
+  struct AstSingleCommand* astSingleCommand;
 }
 
 /* -------------------------------------------------------
@@ -26,63 +34,42 @@ int yywrap() {
 %token<string>  IO_NUMBER
 
 
-/* The following are the operators mentioned above. */
-%token<string>  AND_IF    OR_IF    DSEMI
-/*              '&&'      '||'     ';;'    */
-%token<string>  DLESS  DGREAT  LESSAND  GREATAND  LESSGREAT  DLESSDASH
-/*              '<<'   '>>'    '<&'     '>&'      '<>'       '<<-'   */
-%token<string>  CLOBBER
-/*              '>|'   */
-/* The following are the reserved words. */
-%token<string>  If    Then    Else    Elif    Fi    Do    Done
-/*              'if'  'then'  'else'  'elif'  'fi'  'do'  'done'   */
-%token<string>  Case    Esac    While    Until    For
-/*              'case'  'esac'  'while'  'until'  'for'   */
-/* These are reserved words, not operator tokens, and are
-   recognized when reserved words are recognized. */
-%token<string>  Lbrace    Rbrace    Bang
-/*              '{'       '}'       '!'   */
-%token<string>  In
-/*              'in'   */
+%token<integer>  AND_IF    OR_IF
+/*              '&&'      '||' */
 
-%type<string> complete_command pipe_sequence sequence_separator single_command
-%type<string> cmd_name cmd_suffix io_redirect io_file filename
-
+%type<integer> sequence_separator
+%type<string>  filename cmd_name io_in io_out
+%type<astSingleCommand> single_command
+%type<astPipeSequence> pipe_sequence
+%type<astRoot> complete_command
 /* -------------------------------------------------------
    The Grammar
    ------------------------------------------------------- */
 %start  complete_command
 %%
-complete_command   : pipe_sequence
-                   | complete_command sequence_separator pipe_sequence
-                   | complete_command '&'
-                   | complete_command NEWLINE
-                   | NEWLINE
+complete_command   : pipe_sequence {$$ = createAstRoot(); addPipeSequence($$, $1); astRoot = $$;}
+                   | complete_command sequence_separator pipe_sequence {addPipeSequenceWithSeparator($1, $3, ($2 == AND_IF) ? 1 : 2); $$ = $1; astRoot = $$;}
+                   | complete_command '&' {$$->async = TRUE; astRoot = $$;}
+                   | complete_command NEWLINE {$$ = $1; astRoot = $$;}
+                   | NEWLINE {$$ = createAstRoot(); astRoot = $$;}
                    ;
-pipe_sequence      : single_command
-                   | pipe_sequence '|' single_command
+pipe_sequence      : single_command {$$ = createAstPipeSequence(); addCommand($$, $1);}
+                   | pipe_sequence '|' single_command {addCommand($1, $3); $$ = $1;}
                    ;
-sequence_separator : AND_IF
-                   | OR_IF
+sequence_separator : AND_IF {$$ = $1;}
+                   | OR_IF {$$ = $1;}
                    ;
-single_command     : cmd_name
-                   | cmd_name cmd_suffix
+single_command     : cmd_name {$$ = createAstSingleCommand($1, NULL, NULL);}
+                   | single_command io_in {setIoIn($1, $2); $$ = $1;}
+                   | single_command io_out {setIoOut($1, $2); $$ = $1;}
+                   | single_command WORD {addArgs($1, $2); $$ = $1;}
                    ;
-cmd_name           : WORD { printf("Command Name\n"); }
+cmd_name           : WORD {$$ = $1;}
                    ;
-cmd_suffix         :            io_redirect
-                   | cmd_suffix io_redirect
-                   |          WORD   { printf("Command Suffix\n"); }
-                   | cmd_suffix WORD { printf("Command Suffix\n"); }
+io_in              : '<'      filename {$$ = $2;}
                    ;
-io_redirect        :           io_file
-                   | IO_NUMBER filename
+io_out             : '>'      filename {$$ = $2;}
                    ;
-io_file            : '<'      filename
-                   | '>'      filename
-                   | GREATAND filename
-                   | DGREAT   filename
-                   ;
-filename           : WORD
+filename           : WORD {$$ = $1;}
                    ;
 %%

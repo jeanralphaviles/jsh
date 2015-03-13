@@ -1,12 +1,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define MAX_LENGTH 1024
+#include "defines.h"
+#include "ast.h"
 
 extern int yyparse();
 extern int yylex();
 extern int yy_scan_string(const char *);
 extern int yy_delete_buffer(int buf);
+extern struct AstRoot* astRoot;
 
 int main(int argc, char* argv[]) {
 	//char* cmd;
@@ -19,7 +21,12 @@ int main(int argc, char* argv[]) {
 		
 		int buf = yy_scan_string(line);
 		int returnVal = yyparse();
-		yy_delete_buffer(buf);
+    if (returnVal == 0) {
+      if (astRoot != NULL) {
+        executeAstRoot(astRoot);
+      }
+    }
+		//yy_delete_buffer(buf);
 		//printf("The return value of yyparse() is: %d\n", returnVal);
 
 	}
