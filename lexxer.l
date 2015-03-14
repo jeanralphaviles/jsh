@@ -14,7 +14,7 @@ extern int linenum;
 [0-9]+[<|>]             { return IO_NUMBER; } 
 \".*\"					{ yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
 							yylval.string[0] = '\0'; yylval.string++; return WORD; }	
-[a-zA-Z0-9\-\*\.\/]+      { yylval.string = strdup(yytext); return WORD; }
+[a-zA-Z0-9\-\*\.\/]+    { yylval.string = strdup(yytext); return WORD; }
 [ \t\r\s]+           		{ ; } /* Ignore Whitespace */
 .                       { ; } /* No Match */
 %%
