@@ -102,7 +102,6 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 }
 
 int executeCommand(struct AstSingleCommand* command) {
-  // TODO figure out PATH
   int process; // pid of child
   int status; // status of child
   char* temp = NULL;
@@ -116,6 +115,11 @@ int executeCommand(struct AstSingleCommand* command) {
     dequeue(command->args);
     ++i;
   }
+  int argc = i;
+  /*if (checkBuiltInCommand(cmd_name, argc, argv) == 0) {
+	  printf("This is where i am !\n");
+	  return 0; // Should It Return 0 ?
+  }*/
   sprintf(PATH, "%s", getenv("PATH"));
   process = fork();
   if (process < 0) {
@@ -128,18 +132,20 @@ int executeCommand(struct AstSingleCommand* command) {
     while (path_dir) {
       if (temp) {
         free(temp);
+        temp = NULL;
       }
       temp = (char*)malloc(strlen(cmd_name) + strlen(path_dir) + 2);
       strcpy(temp, path_dir);
       strcat(temp, "/");
       strcat(temp, cmd_name);
       printf("Executing %s\n", temp);
-      execv(temp, argv); // If this returns the exec failed
+      execvp(temp, argc, argv); // If this returns the exec failed
       path_dir = strtok(NULL, ":");
     }
     if (path_dir == NULL) {
       if (temp) {
         free(temp);
+        temp = NULL;
       }
       return ERR_NOT_FOUND;
     }
@@ -147,7 +153,23 @@ int executeCommand(struct AstSingleCommand* command) {
     wait(&status); // Wait for child to finish
     if (temp) {
       free(temp);
+      temp = NULL;
     }
     return status;
   }
+}
+
+int checkBuiltInCommand(char* cmd, int argc, char** argv) {
+	if (strcmp(cmd, "cd") == 0) {
+		char* dest = "";
+		if (argc > 1)
+			dest = argv[1];
+		else
+			sprintf(dest, "%s", getenv("HOME"));
+		if (strcmp(dest, "") == 0)
+			return 1;
+		int val = chdir(dest);
+		return val;
+	}
+	return 1;
 }

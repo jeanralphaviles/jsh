@@ -23,6 +23,6 @@ void enqueueQnode(struct q_node*, void*); // Assumes ownership of elements enque
 struct q_node* dequeueQnode(struct q_node*); // Returns new head
 void* frontQnode(struct q_node*); // Retains ownership of elements returned
 int sizeQnode(struct q_node*);
-struct q_node* createQueueNode(void*); // Retains ownership of arugment
+struct q_node* createQueueNode(void*); // Retains ownership of argument
 
 #endif

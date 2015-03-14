@@ -42,4 +42,7 @@ int executeAstRoot(struct AstRoot*);
 int executePipeSequence(struct AstPipeSequence*);
 int executeCommand(struct AstSingleCommand*);
 
+// This will check for Shell Built In Commands
+int checkBuiltInCommand(char* cmd, int argc, char** argv);
+
 #endif
