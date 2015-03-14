@@ -139,7 +139,7 @@ int executeCommand(struct AstSingleCommand* command) {
       strcat(temp, "/");
       strcat(temp, cmd_name);
       printf("Executing %s\n", temp);
-      execvp(temp, argc, argv); // If this returns the exec failed
+      execvp(temp, argv); // If this returns the exec failed
       path_dir = strtok(NULL, ":");
     }
     if (path_dir == NULL) {
