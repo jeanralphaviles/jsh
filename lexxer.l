@@ -12,7 +12,7 @@ extern int linenum;
 "||"                    { return OR_IF; }
 [|\(\)&;<>]             { return yytext[0]; }
 [0-9]+[<|>]             { return IO_NUMBER; } 
-[a-zA-Z0-9\-\*\.]+      { yylval.string = strdup(yytext); return WORD; }
+[a-zA-Z0-9\-\*\.\/]+      { yylval.string = strdup(yytext); return WORD; }
 [ \t\r\s]+           		{ ; } /* Ignore Whitespace */
 .                       { ; } /* No Match */
 %%
