@@ -128,18 +128,20 @@ int executeCommand(struct AstSingleCommand* command) {
     while (path_dir) {
       if (temp) {
         free(temp);
+        temp = NULL;
       }
       temp = (char*)malloc(strlen(cmd_name) + strlen(path_dir) + 2);
       strcpy(temp, path_dir);
       strcat(temp, "/");
       strcat(temp, cmd_name);
       printf("Executing %s\n", temp);
-      execv(temp, argv); // If this returns the exec failed
+      execvp(temp, argv); // If this returns the exec failed
       path_dir = strtok(NULL, ":");
     }
     if (path_dir == NULL) {
       if (temp) {
         free(temp);
+        temp = NULL;
       }
       return ERR_NOT_FOUND;
     }
@@ -147,6 +149,7 @@ int executeCommand(struct AstSingleCommand* command) {
     wait(&status); // Wait for child to finish
     if (temp) {
       free(temp);
+      temp = NULL;
     }
     return status;
   }

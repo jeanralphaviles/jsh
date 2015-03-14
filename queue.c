@@ -60,7 +60,7 @@ void enqueueQnode(struct q_node *q_head, void *data) {
 
 struct q_node* dequeueQnode(struct q_node *q_head) {
   struct q_node* newHead = q_head->next;
-  free(q_head->data);
+  /*free(q_head->data);*/
   free(q_head);
   return newHead;
 }
