@@ -116,10 +116,10 @@ int executeCommand(struct AstSingleCommand* command) {
     ++i;
   }
   int argc = i;
-  /*if (checkBuiltInCommand(cmd_name, argc, argv) == 0) {
+  if (checkBuiltInCommand(cmd_name, argc, argv) == 0) {
 	  printf("This is where i am !\n");
 	  return 0; // Should It Return 0 ?
-  }*/
+  }
   sprintf(PATH, "%s", getenv("PATH"));
   process = fork();
   if (process < 0) {
@@ -161,11 +161,11 @@ int executeCommand(struct AstSingleCommand* command) {
 
 int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 	if (strcmp(cmd, "cd") == 0) {
-		char* dest = "";
+		const char* dest = "";
 		if (argc > 1)
 			dest = argv[1];
 		else
-			sprintf(dest, "%s", getenv("HOME"));
+			dest = getenv("HOME");
 		if (strcmp(dest, "") == 0)
 			return 1;
 		int val = chdir(dest);
