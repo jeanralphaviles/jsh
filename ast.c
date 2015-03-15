@@ -6,6 +6,7 @@
 #include "ast.h"
 #include "queue.h"
 #include "defines.h"
+#include "builtins.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));
@@ -117,7 +118,6 @@ int executeCommand(struct AstSingleCommand* command) {
   }
   int argc = i;
   if (checkBuiltInCommand(cmd_name, argc, argv) == 0) {
-	  printf("This is where i am !\n");
 	  return 0; // Should It Return 0 ?
   }
   sprintf(PATH, "%s", getenv("PATH"));
@@ -138,7 +138,7 @@ int executeCommand(struct AstSingleCommand* command) {
       strcpy(temp, path_dir);
       strcat(temp, "/");
       strcat(temp, cmd_name);
-      printf("Executing %s\n", temp);
+      //printf("Executing %s\n", temp);
       execvp(temp, argv); // If this returns the exec failed
       path_dir = strtok(NULL, ":");
     }
@@ -159,17 +159,4 @@ int executeCommand(struct AstSingleCommand* command) {
   }
 }
 
-int checkBuiltInCommand(char* cmd, int argc, char** argv) {
-	if (strcmp(cmd, "cd") == 0) {
-		const char* dest = "";
-		if (argc > 1)
-			dest = argv[1];
-		else
-			dest = getenv("HOME");
-		if (strcmp(dest, "") == 0)
-			return 1;
-		int val = chdir(dest);
-		return val;
-	}
-	return 1;
-}
+

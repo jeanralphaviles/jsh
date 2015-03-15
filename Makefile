@@ -1,5 +1,5 @@
-all: y.tab.o lex.yy.o main.o queue.o ast.o
-	cc lex.yy.o y.tab.o main.o queue.o ast.o -o main -g
+all: y.tab.o lex.yy.o main.o queue.o builtins.o ast.o 
+	cc lex.yy.o y.tab.o main.o queue.o builtins.o ast.o -o main -g
 
 y.tab.h: grammar.y
 	yacc -dv grammar.y
@@ -15,6 +15,9 @@ lex.yy.c: lexxer.l
 
 lex.yy.o: lex.yy.c
 	cc -c lex.yy.c -g
+
+builtins.o: builtins.h builtins.c
+	cc -c builtins.c -g
 
 queue.o: queue.h queue.c
 	cc -c queue.c -g
