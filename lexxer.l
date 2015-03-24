@@ -1,5 +1,6 @@
 %{
 #include <stdlib.h>
+
 #include "ast.h"
 #include "y.tab.h"
 extern int linenum;

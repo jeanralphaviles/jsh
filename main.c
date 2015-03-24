@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "defines.h"
 #include "ast.h"
+#include "defines.h"
 
 extern int yyparse();
 extern int yy_scan_string(const char *);

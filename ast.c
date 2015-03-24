@@ -1,12 +1,12 @@
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 
 #include "ast.h"
-#include "queue.h"
 #include "defines.h"
 #include "builtins.h"
+#include "queue.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));

@@ -1,7 +1,7 @@
 #include "queue.h"
 
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // Queue Functions
 void enqueue(struct queue* q, void* data) {
