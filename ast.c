@@ -105,6 +105,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 int executeCommand(struct AstSingleCommand* command) {
   int process; // pid of child
   int status; // status of child
+  struct stat sb; // File status
   char* temp = NULL;
   char* PATH = (char*)malloc(MAX_LENGTH);
   char* cmd_name = command->cmd_name;
@@ -138,8 +139,10 @@ int executeCommand(struct AstSingleCommand* command) {
       strcpy(temp, path_dir);
       strcat(temp, "/");
       strcat(temp, cmd_name);
-      //printf("Executing %s\n", temp);
-      execvp(temp, argv); // If this returns the exec failed
+      if (stat(temp, &sb) == 0 && S_ISREG(sb.st_mode)) {
+        execv(temp, argv); // If this returns the exec failed
+        return SUCCESS;
+      }
       path_dir = strtok(NULL, ":");
     }
     if (path_dir == NULL) {
@@ -147,6 +150,7 @@ int executeCommand(struct AstSingleCommand* command) {
         free(temp);
         temp = NULL;
       }
+      printf("Command not found @ %s\n", __func__);
       return ERR_NOT_FOUND;
     }
   } else if (process == 1) { // Parent
