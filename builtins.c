@@ -1,15 +1,15 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include "builtins.h"
-#include "defines.h"
 /*
  * builtins.c
  *
  *  Created on: Mar 15, 2015
  *      Author: Joseph Liccini
  */
-
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "builtins.h"
+#include "defines.h"
+#include "utils.h"
 
 int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 	if (strcmp(cmd, "cd") == 0) {
@@ -26,17 +26,4 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		return val;
 	}
 	return 1;
-}
-
-void fixPath(char* path) {
-	// If the path is an Absolute Path, no fixing to do.
-	if (path[0] == '/') return;
-
-	char* wd = (char*)malloc(MAX_LENGTH);
-
-	getcwd(wd, MAX_LENGTH);
-
-	strcat(wd, "/");
-	strcat(wd, path);
-	path = wd;
 }

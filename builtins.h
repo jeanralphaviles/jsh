@@ -9,6 +9,5 @@
 #define BUILTINS_H_
 
 int checkBuiltInCommand(char* cmd, int argc, char** argv);
-void fixPath(char* path);
 
 #endif /* BUILTINS_H_ */
