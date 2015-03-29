@@ -22,16 +22,21 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		}
 		else
 			sprintf(dest, "%s", getenv("HOME"));
-		printf("Attempting to 'cd' to: %s\n", dest);
 		int val = chdir(dest);
-		return val;
+		printf("'cd' command exited with code: %d\n", val);
+		return TRUE;
 	}
 	else if (strcmp(cmd, "alias") == 0) {
+		printf("argc: %d\n", argc);
 		if (argc > 2) {
-			char* name = argv[2];
-			char* word = argv[3];
-			checkAliasExists(name);
+			char* name = argv[1];
+			char* word = argv[2];
+			mapAlias(name, word);
 		}
+		else if (argc == 1) {
+			printAliasTable();
+		}
+		return TRUE;
 	}
-	return 1;
+	return FALSE;
 }

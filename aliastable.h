@@ -8,7 +8,8 @@
 #ifndef ALIASTABLE_H_
 #define ALIASTABLE_H_
 
-int checkAliasExists(char* name);
 void mapAlias(char* name, char* toWord);
+void unmapAlias(char* name);
+void printAliasTable();
 
 #endif /* ALIASTABLE_H_ */
