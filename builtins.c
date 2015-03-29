@@ -16,7 +16,6 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 	if (strcmp(cmd, "cd") == 0) {
 		char* dest = (char*)malloc(MAX_LENGTH);
 		if (argc > 1) {
-			//free(dest);
 			dest = argv[1];
 			fixPath(dest);
 		}
@@ -42,6 +41,10 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 			char* name = argv[1];
 			unmapAlias(name);
 		}
+		return TRUE;
+	}
+	else if (strcmp(cmd, "bye") == 0) {
+		exit(EXIT_SUCCESS);
 		return TRUE;
 	}
 	return FALSE;

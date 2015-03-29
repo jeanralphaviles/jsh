@@ -7,7 +7,7 @@ extern int linenum;
 %}
 
 %%
-(bye)|EOF               { exit(EXIT_SUCCESS); }
+EOF               	{ exit(EXIT_SUCCESS); }
 \n+                     { ++linenum; return NEWLINE; }
 "&&"                    { return AND_IF; }
 "||"                    { return OR_IF; }
