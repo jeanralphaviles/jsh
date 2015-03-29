@@ -27,7 +27,6 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		return TRUE;
 	}
 	else if (strcmp(cmd, "alias") == 0) {
-		printf("argc: %d\n", argc);
 		if (argc > 2) {
 			char* name = argv[1];
 			char* word = argv[2];
@@ -35,6 +34,13 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		}
 		else if (argc == 1) {
 			printAliasTable();
+		}
+		return TRUE;
+	}
+	else if (strcmp(cmd, "unalias") == 0) {
+		if (argc > 1) {
+			char* name = argv[1];
+			unmapAlias(name);
 		}
 		return TRUE;
 	}

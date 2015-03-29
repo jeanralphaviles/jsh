@@ -26,8 +26,7 @@ void mapAlias(char* name, char* toWord) {
 	alias_keys[alias_count] = name;
 	alias_values[alias_count] = toWord;
 	++alias_count;
-	printf("Mapped Alias: %s to %s\n", name, toWord);
-	printf("Number of Aliases: %d\n", alias_count);
+	printf("Successfully Mapped Alias: %s to %s\n", name, toWord);
 }
 
 int checkAliasExists(char* name) {
@@ -55,11 +54,10 @@ void deleteEntry(int index) {
 
 void unmapAlias(char* name) {
 	if (!(checkAliasExists(name))) {
-		printf("Alias: %s does not exist!", name);
+		printf("Alias: %s does not exist!\n", name);
 		return;
 	}
-	int target_index = -1;
-	int i;
+	int i, target_index;
 	for (i = 0; i < alias_count; ++i) {
 		if (strcmp(name, alias_keys[i]) == 0) {
 			target_index = i;
@@ -67,6 +65,7 @@ void unmapAlias(char* name) {
 		}
 	}
 	deleteEntry(target_index);
+	printf("Successfully Unmapped Alias: %s\n", name);
 }
 
 void printAliasTable() {
