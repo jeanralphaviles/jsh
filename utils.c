@@ -4,6 +4,11 @@
  *  Created on: Mar 28, 2015
  *      Author: joe
  */
+
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "defines.h"
 
 void fixPath(char* path) {
