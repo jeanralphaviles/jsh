@@ -11,6 +11,7 @@
 #include "defines.h"
 #include "utils.h"
 #include "aliastable.h"
+#include "env.h"
 
 int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 	if (strcmp(cmd, "cd") == 0) {
@@ -40,6 +41,25 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		if (argc > 1) {
 			char* name = argv[1];
 			unmapAlias(name);
+		}
+		return TRUE;
+	}
+	else if (strcmp(cmd, "printenv") == 0) {
+		printEnv();
+		return TRUE;
+	}
+	else if (strcmp(cmd, "setenv") == 0) {
+		if (argc > 2) {
+			char* variable = argv[1];
+			char* word = argv[2];
+			setEnv(variable, word);
+		}
+		return TRUE;
+	}
+	else if (strcmp(cmd, "unsetenv") == 0) {
+		if (argc > 1) {
+			char* variable = argv[1];
+			unsetEnv(variable);
 		}
 		return TRUE;
 	}
