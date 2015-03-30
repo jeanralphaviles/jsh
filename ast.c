@@ -118,8 +118,8 @@ int executeCommand(struct AstSingleCommand* command) {
     ++i;
   }
   int argc = i;
-  if (checkBuiltInCommand(cmd_name, argc, argv) == 0) {
-	  return 0; // Should It Return 0 ?
+  if (checkBuiltInCommand(cmd_name, argc, argv) == TRUE) {
+	  return TRUE;
   }
   sprintf(PATH, "%s", getenv("PATH"));
   process = fork();
