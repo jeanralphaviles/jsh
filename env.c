@@ -22,6 +22,24 @@ void printEnv() {
 	}
 }
 
+void printEnvSingleVar(char* variable) {
+	char** env;
+	char* envLinePtr;
+
+	for (env = environ; *env; ++env) {
+		envLinePtr = *env;
+		while (*envLinePtr != '\0' && *variable != '\0' && *envLinePtr == *variable) {
+			++envLinePtr;
+			++variable;
+
+			if (*envLinePtr == '=') {
+				printf("%s\n", envLinePtr + 1);
+				return;
+			}
+		}
+	}
+}
+
 void setEnv(const char* variable, const char* word) {
 	int val = setenv(variable, word, 1);
 	printf("Output of setEnv: %d\n", val);

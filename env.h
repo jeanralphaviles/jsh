@@ -9,6 +9,7 @@
 #define ENV_H_
 
 void printEnv();
+void printEnvSingleVar();
 void setEnv(const char* variable, const char* word);
 void unsetEnv(const char* variable);
 char* expandVariables(char* word);
