@@ -11,8 +11,7 @@
 #include <stdlib.h>
 
 /* How to make dynamic arrays in C, I'm not sure.
- * For now I hope they don't make 1024 alias mappings.
- * Is there even a HashMap? */
+ * For now I hope they don't make 1024 alias mappings. */
 
 char* alias_keys[MAX_LENGTH];
 char* alias_values[MAX_LENGTH];

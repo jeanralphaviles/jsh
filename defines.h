@@ -11,4 +11,7 @@
 #define ERR_FORK 126
 #define SUCCESS 0
 
+// Regex
+#define ENVIRONMENTAL_VARIABLE_REGEX "\\$\\{.*\\}"
+
 #endif
