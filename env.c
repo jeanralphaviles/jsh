@@ -42,12 +42,10 @@ void printEnvSingleVar(char* variable) {
 
 void setEnv(const char* variable, const char* word) {
 	int val = setenv(variable, word, 1);
-	printf("Output of setEnv: %d\n", val);
 }
 
 void unsetEnv(const char* variable) {
 	int val = unsetenv(variable);
-	printf("Output of unsetEnv: %d\n", val);
 }
 
 char* expandVariables(char* word) {
@@ -56,7 +54,7 @@ char* expandVariables(char* word) {
 	int i;
 
 	for (i = 0; i < MAX_LENGTH && word[i] != '\0'; ++i) {
-		if (word[i] == '$' && word[i + 1] == '{') {
+		if (word[i] == '$' && (i + 1) != '\0' && word[i + 1] == '{') {
 			char* envVar = malloc(MAX_LENGTH);
 			int envVarPtr = 0;
 			i += 2;
@@ -67,7 +65,17 @@ char* expandVariables(char* word) {
 				if (word[i] == '}') {
 					envVar[envVarPtr] = '\0';
 					char* temp = malloc(MAX_LENGTH);
-					sprintf(temp, "%s", getenv(envVar));
+					if (getenv(envVar) != NULL) {
+						sprintf(temp, "%s", getenv(envVar));
+					}
+
+					// No env var found, return ${VAR}
+					else {
+						strcat(temp, "${");
+						strcat(temp, envVar);
+						strcat(temp, "}");
+					}
+
 					int j;
 					for (j = 0; j < strlen(temp); ++j) {
 						copy[copyPtr] = temp[j];
