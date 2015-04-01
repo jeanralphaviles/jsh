@@ -42,4 +42,7 @@ int executeAstRoot(struct AstRoot*);
 int executePipeSequence(struct AstPipeSequence*);
 int executeCommand(struct AstSingleCommand*);
 
+// Utility
+bool fileExists(char*);
+
 #endif

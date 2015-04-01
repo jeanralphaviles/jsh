@@ -6,6 +6,15 @@
 #define FALSE 0
 #define MAX_LENGTH 1024
 
+// File Descriptor
+#define READ_END 0
+#define WRITE_END 1
+
+// Stdio
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+
 // Errors
 #define ERR_NOT_FOUND 127
 #define ERR_FORK 126
