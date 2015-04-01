@@ -8,6 +8,7 @@
 #include "defines.h"
 #include "builtins.h"
 #include "queue.h"
+#include "utils.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));
@@ -166,9 +167,18 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 
 int executeCommand(struct AstSingleCommand* command) {
   char* cmd_name = command->cmd_name;
-  char* env = getenv("PATH");
   char** argv = getArgs(command);
-  char* token = strtok(env, ":");
+  // i.e. if ths command was /bin/ls
+  if (isAbsolutePath(cmd_name)) {
+	  if (fileExists(cmd_name)) {
+	      execv(cmd_name, argv); // Will not return, unless it fails
+	  }
+	  free(argv);
+	  free(cmd_name);
+	  exit(1);
+  }
+  char* path = getenv("PATH");
+  char* token = strtok(path, ":");
   while (token != NULL) {
     // Allocate enough space for strcat + NULL + '/'
     char* filename = (char*)malloc(strlen(token) + strlen(cmd_name) + 2);
