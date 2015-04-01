@@ -9,5 +9,6 @@
 #define UTILS_H_
 
 void fixPath(char* path);
+int isAbsolutePath(char* path);
 
 #endif /* UTILS_H_ */

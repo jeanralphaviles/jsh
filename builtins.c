@@ -63,7 +63,6 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
 	}
 	else if (strcmp(cmd, "bye") == 0) {
 		exit(EXIT_SUCCESS);
-
 	}
 }
 
