@@ -16,7 +16,7 @@ int main(int argc, char* argv[]) {
   init();
 
   while (1) {
-    printf("jsh> ");
+    fprintf(stderr, "jsh> ");
     if (!fgets(line, MAX_LENGTH, stdin)) {
       break;
     }
@@ -26,9 +26,10 @@ int main(int argc, char* argv[]) {
     if (returnVal == 0) {
       if (astRoot != NULL) {
         executeAstRoot(astRoot);
+        free(astRoot); // Huge memory leak here :)
       }
     } else {
-      printf("An error occurred\n");
+      fprintf(stderr, "An error occurred\n");
     }
   }
   return 0;

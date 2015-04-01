@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "defines.h"
@@ -89,77 +90,105 @@ int executeAstRoot(struct AstRoot* root) {
     return executePipeSequence((struct AstPipeSequence*)front(root->pipe_sequences));
   } else {
     // TODO
+    return ERR_NOT_FOUND;
   }
 }
 
 int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
   if (size(pipe_sequence->commands) == 0) {
     return ERR_NOT_FOUND;
-  } else if (size(pipe_sequence->commands) == 1) { // Only One command, no pipes
-    return executeCommand((struct AstSingleCommand*)front(pipe_sequence->commands));
   } else {
-    // TODO
+    struct queue* commands = pipe_sequence->commands;
+    int currPipe[2] = {-1, -1};
+    int lastPipe = -1;
+    int i;
+    pid_t* pids = (pid_t*)malloc(sizeof(pid_t)*size(commands));
+    for (i = 0; size(commands) > 0; ++i) {
+      // Get next command
+      struct AstSingleCommand* command = (struct AstSingleCommand*)front(commands);
+      dequeue(commands);
+      if (size(commands) > 0) { // Don't need to pipe if we're the last command
+        pipe(currPipe);
+      }
+      switch (pids[i] = fork()) {
+        case -1:
+          fprintf(stderr, "failed to fork\n");
+          break;
+        case 0: // In child
+          if (lastPipe >= 0) {
+            // We have a pipe to read from
+            dup2(lastPipe, STDIN_FILENO); // stdin <= lastpipe
+            close(lastPipe);
+          }
+          if (currPipe[WRITE_END] >= 0) {
+            // If we have a pipe to write to use it
+            dup2(currPipe[WRITE_END], STDOUT_FILENO);
+            // Close both ends of the pipe here
+            close(currPipe[WRITE_END]);
+            close(currPipe[READ_END]);
+          }
+          executeCommand(command); // Will not return unless there is an error
+          exit(1);
+          break;
+        default: // In parent
+          // Child has handled the write end
+          if (currPipe[WRITE_END] >= 0) {
+            close(currPipe[WRITE_END]);
+          }
+          if (lastPipe >= 0) {
+            close(lastPipe);
+          }
+          lastPipe = currPipe[READ_END];
+          // Zero out pipe
+          currPipe[READ_END] = -1;
+          currPipe[WRITE_END] = -1;
+          break;
+      }
+    }
+    // Wait for every process to finish
+    while (i--) {
+      int status;
+      wait(&status);
+    }
+    free(pids);
+    return SUCCESS;
   }
 }
 
 int executeCommand(struct AstSingleCommand* command) {
-  int process; // pid of child
-  int status; // status of child
-  struct stat sb; // File status
-  char* temp = NULL;
-  char* PATH = (char*)malloc(MAX_LENGTH);
+  int i;
   char* cmd_name = command->cmd_name;
-  char** argv = (char**)malloc(size(command->args));
-  int i = 0;
-  while(size(command->args) != 0) {
-	argv[i] = (char*)front(command->args);
-    printf("added argument %s\n", argv[i]);
+  // Get argv
+  char** argv = (char**)malloc(sizeof(char**)*(size(command->args) + 1));
+  for (i = 0; size(command->args) > 0; ++i) {
+    argv[i] = (char*)front(command->args);
     dequeue(command->args);
-    ++i;
   }
-  int argc = i;
-  if (checkBuiltInCommand(cmd_name, argc, argv) == TRUE) {
-	  return SUCCESS;
-  }
-  sprintf(PATH, "%s", getenv("PATH"));
-  process = fork();
-  if (process < 0) {
-    fprintf(stderr, "FORK FAILED!!\n");
-    free(argv);
-    return ERR_FORK;
-  }
-  if (process == 0) { // In child
-    char* path_dir = strtok(PATH, ":");
-    while (path_dir) {
-      if (temp) {
-        free(temp);
-        temp = NULL;
-      }
-      temp = (char*)malloc(strlen(cmd_name) + strlen(path_dir) + 2);
-      strcpy(temp, path_dir);
-      strcat(temp, "/");
-      strcat(temp, cmd_name);
-      if (stat(temp, &sb) == 0 && S_ISREG(sb.st_mode)) {
-        int val = execv(temp, argv); // If this returns the exec failed
-        printf("Executed Process with return val: %d\n", val);
-        return SUCCESS;
-      }
-      path_dir = strtok(NULL, ":");
+  argv[i] = NULL;
+  char* env = getenv("PATH");
+  char* token = strtok(env, ":");
+  while (token != NULL) {
+    // Allocate enough space for strcat + NULL + '/'
+    char* filename = (char*)malloc(strlen(token) + strlen(cmd_name) + 2);
+    strcpy(filename, token);
+    strcat(filename, "/");
+    strcat(filename, cmd_name);
+    if (fileExists(filename)) {
+      execv(filename, argv); // Will not return, unless it fails
+      perror("wtf");
+      exit(1); // Error
+    } else {
+      free(filename);
+      token = strtok(NULL, ":");
     }
-    if (path_dir == NULL) {
-      if (temp) {
-        free(temp);
-        temp = NULL;
-      }
-      printf("Command not found @ %s\n", __func__);
-      return ERR_NOT_FOUND;
-    }
-  } else if (process == 1) { // Parent
-    wait(&status); // Wait for child to finish
-    if (temp) {
-      free(temp);
-      temp = NULL;
-    }
-    return status;
   }
+  // Never found
+  free(argv);
+  free(cmd_name);
+  exit(1);
+}
+
+bool fileExists(char* filename) {
+  struct stat buff;
+  return stat(filename, &buff) == 0 && buff.st_mode & S_IXUSR;
 }

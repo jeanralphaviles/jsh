@@ -5,8 +5,10 @@
  *      Author: Joseph Liccini
  */
 #include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
 #include "builtins.h"
 #include "defines.h"
 #include "utils.h"

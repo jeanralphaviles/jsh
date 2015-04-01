@@ -14,9 +14,19 @@ void enqueue(struct queue* q, void* data) {
 
 void dequeue(struct queue* q) {
   if (q->head == NULL) {
-    fprintf(stderr, "Dequeue from Empty Queue");
+    fprintf(stderr, "Dequeue from Empty Queue\n");
   } else {
     q->head = dequeueQnode(q->head);
+  }
+}
+
+void pop_back(struct queue* q) {
+  if (size(q) == 0) {
+    fprintf(stderr, "Popback from empty queue\n");
+  } else if (size(q) == 1) {
+    dequeue(q);
+  } else {
+    removeLastNode(q->head);
   }
 }
 
@@ -26,6 +36,15 @@ void* front(struct queue* q) {
     return NULL;
   } else {
     return frontQnode(q->head);
+  }
+}
+
+void* back(struct queue* q) {
+  if (q->head == NULL) {
+    fprintf(stderr, "Getting element from Empty Queue");
+    return NULL;
+  } else {
+    return lastQnode(q->head);
   }
 }
 
@@ -65,7 +84,23 @@ struct q_node* dequeueQnode(struct q_node *q_head) {
   return newHead;
 }
 
+void removeLastNode(struct q_node* q_head) {
+  while(q_head->next != NULL) {
+    q_head = q_head->next;
+  }
+  q_head = q_head->prev;
+  free(q_head->next);
+  q_head->next = NULL;
+}
+
 void* frontQnode(struct q_node *q_head) {
+  return q_head->data;
+}
+
+void* lastQnode(struct q_node *q_head) {
+  while (q_head->next != NULL) {
+    q_head = q_head->next;
+  }
   return q_head->data;
 }
 
