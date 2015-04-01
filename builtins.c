@@ -47,7 +47,10 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		return TRUE;
 	}
 	else if (strcmp(cmd, "printenv") == 0) {
-		printEnv();
+		if (argc <= 1)
+			printEnv();
+		else
+			printEnvSingleVar(argv[1]);
 		return TRUE;
 	}
 	else if (strcmp(cmd, "setenv") == 0) {

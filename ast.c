@@ -112,14 +112,14 @@ int executeCommand(struct AstSingleCommand* command) {
   char** argv = (char**)malloc(size(command->args));
   int i = 0;
   while(size(command->args) != 0) {
-    argv[i] = (char*)front(command->args);
+	argv[i] = (char*)front(command->args);
     printf("added argument %s\n", argv[i]);
     dequeue(command->args);
     ++i;
   }
   int argc = i;
   if (checkBuiltInCommand(cmd_name, argc, argv) == TRUE) {
-	  return TRUE;
+	  return SUCCESS;
   }
   sprintf(PATH, "%s", getenv("PATH"));
   process = fork();
@@ -140,7 +140,8 @@ int executeCommand(struct AstSingleCommand* command) {
       strcat(temp, "/");
       strcat(temp, cmd_name);
       if (stat(temp, &sb) == 0 && S_ISREG(sb.st_mode)) {
-        execv(temp, argv); // If this returns the exec failed
+        int val = execv(temp, argv); // If this returns the exec failed
+        printf("Executed Process with return val: %d\n", val);
         return SUCCESS;
       }
       path_dir = strtok(NULL, ":");
@@ -162,5 +163,3 @@ int executeCommand(struct AstSingleCommand* command) {
     return status;
   }
 }
-
-
