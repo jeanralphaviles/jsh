@@ -1,40 +1,40 @@
-all: y.tab.o lex.yy.o main.o queue.o utils.o env.o aliastable.o builtins.o ast.o 
+all: y.tab.o lex.yy.o main.o queue.o utils.o env.o aliastable.o builtins.o ast.o
 	cc lex.yy.o y.tab.o main.o queue.o utils.o env.o aliastable.o builtins.o ast.o -o main -g
 
-y.tab.h: grammar.y
+y.tab.h: ast.h defines.h grammar.y
 	yacc -dv grammar.y
 
-y.tab.c: grammar.y
+y.tab.c: ast.h defines.h grammar.y
 	yacc -dv grammar.y
 
 y.tab.o: y.tab.h y.tab.c
 	cc -c y.tab.c -g
 
-lex.yy.c: lexxer.l
+lex.yy.c: ast.h env.h y.tab.h lexxer.l
 	lex lexxer.l
 
 lex.yy.o: lex.yy.c
 	cc -c lex.yy.c -g
 
-builtins.o: builtins.h builtins.c
+builtins.o: defines.h utils.h aliastable.h env.h builtins.h builtins.c
 	cc -c builtins.c -g
 
 queue.o: queue.h queue.c
 	cc -c queue.c -g
 
-ast.o: ast.h ast.c
+ast.o: defines.h builtins.h queue.h utils.h ast.h ast.c
 	cc -c ast.c -g
 
-aliastable.o: aliastable.h aliastable.c
+aliastable.o: defines.h aliastable.h aliastable.c
 	cc -c aliastable.c -g
 
-env.o: env.h env.c
+env.o: defines.h env.h env.c
 	cc -c env.c -g
 
-utils.o: utils.c
+utils.o: defines.h utils.h utils.c
 	cc -c utils.c -g
 
-main.o: main.c
+main.o: ast.h defines.h utils.h main.c
 	cc -c main.c -g
 
 clean:

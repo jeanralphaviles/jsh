@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 #include "ast.h"
-#include "defines.h"
 #include "builtins.h"
+#include "defines.h"
 #include "queue.h"
 #include "utils.h"
 
@@ -202,7 +202,9 @@ int executeCommand(struct AstSingleCommand* command) {
       token = strtok(NULL, ":");
     }
   }
+  const char* oldTermColor = setTermColor(stderr, KRED);
   fprintf(stderr, "jsh: command not found: %s\n", cmd_name);
+  setTermColor(stderr, oldTermColor);
   free(argv);
   free(cmd_name);
   exit(1);
