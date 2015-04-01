@@ -113,12 +113,16 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         pipe(currPipe);
       }
       if (isBuiltinCommand(cmd_name)) {
-	      int argc = size(command->args);
-	      char** argv = getArgs(command);
-		  executeBuiltinCommand(cmd_name, argc, argv);
-		  free(argv);
-		  free(cmd_name);
-		  continue;
+        int argc = size(command->args);
+        char** argv = getArgs(command);
+        executeBuiltinCommand(cmd_name, argc, argv);
+        int i = 0;
+        while (argv[i] != NULL) {
+          free(argv[i++]);
+        }
+        free(argv);
+        free(cmd_name);
+        continue;
       }
       switch (pids[i] = fork()) {
         case -1:
@@ -170,12 +174,16 @@ int executeCommand(struct AstSingleCommand* command) {
   char** argv = getArgs(command);
   // i.e. if ths command was /bin/ls
   if (isAbsolutePath(cmd_name)) {
-	  if (fileExists(cmd_name)) {
-	      execv(cmd_name, argv); // Will not return, unless it fails
-	  }
-	  free(argv);
-	  free(cmd_name);
-	  exit(1);
+    if (fileExists(cmd_name)) {
+        execv(cmd_name, argv); // Will not return, unless it fails
+    }
+    int i = 0;
+    while (argv[i] != NULL) {
+      free(argv[i++]);
+    }
+    free(argv);
+    free(cmd_name);
+    exit(1);
   }
   char* path = getenv("PATH");
   char* token = strtok(path, ":");
@@ -188,13 +196,13 @@ int executeCommand(struct AstSingleCommand* command) {
     if (fileExists(filename)) {
       execv(filename, argv); // Will not return, unless it fails
       perror("wtf");
-      exit(1); // Error
+      exit(1);
     } else {
       free(filename);
       token = strtok(NULL, ":");
     }
   }
-  // Never found
+  fprintf(stderr, "jsh: command not found: %s\n", cmd_name);
   free(argv);
   free(cmd_name);
   exit(1);
@@ -206,14 +214,12 @@ bool fileExists(char* filename) {
 }
 
 char** getArgs(struct AstSingleCommand* command) {
-	int i;
-
-	// Get argv
-	char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
-	for (i = 0; size(command->args) > 0; ++i) {
-		argv[i] = (char*) front(command->args);
-		dequeue(command->args);
-	}
-	argv[i] = NULL;
-	return argv;
+  int i;
+  char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
+  for (i = 0; size(command->args) > 0; ++i) {
+    argv[i] = (char*) front(command->args);
+    dequeue(command->args);
+  }
+  argv[i] = NULL;
+  return argv;
 }
