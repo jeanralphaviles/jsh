@@ -8,6 +8,7 @@
 #ifndef BUILTINS_H_
 #define BUILTINS_H_
 
-int checkBuiltInCommand(char* cmd, int argc, char** argv);
+void executeBuiltinCommand(char* cmd, int argc, char** argv);
+int isBuiltinCommand(char* cmd);
 
 #endif /* BUILTINS_H_ */

@@ -107,8 +107,17 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       // Get next command
       struct AstSingleCommand* command = (struct AstSingleCommand*)front(commands);
       dequeue(commands);
+      char* cmd_name = command->cmd_name;
       if (size(commands) > 0) { // Don't need to pipe if we're the last command
         pipe(currPipe);
+      }
+      if (isBuiltinCommand(cmd_name)) {
+	      int argc = size(command->args);
+	      char** argv = getArgs(command);
+		  executeBuiltinCommand(cmd_name, argc, argv);
+		  free(argv);
+		  free(cmd_name);
+		  continue;
       }
       switch (pids[i] = fork()) {
         case -1:
@@ -156,16 +165,9 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 }
 
 int executeCommand(struct AstSingleCommand* command) {
-  int i;
   char* cmd_name = command->cmd_name;
-  // Get argv
-  char** argv = (char**)malloc(sizeof(char**)*(size(command->args) + 1));
-  for (i = 0; size(command->args) > 0; ++i) {
-    argv[i] = (char*)front(command->args);
-    dequeue(command->args);
-  }
-  argv[i] = NULL;
   char* env = getenv("PATH");
+  char** argv = getArgs(command);
   char* token = strtok(env, ":");
   while (token != NULL) {
     // Allocate enough space for strcat + NULL + '/'
@@ -191,4 +193,17 @@ int executeCommand(struct AstSingleCommand* command) {
 bool fileExists(char* filename) {
   struct stat buff;
   return stat(filename, &buff) == 0 && buff.st_mode & S_IXUSR;
+}
+
+char** getArgs(struct AstSingleCommand* command) {
+	int i;
+
+	// Get argv
+	char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
+	for (i = 0; size(command->args) > 0; ++i) {
+		argv[i] = (char*) front(command->args);
+		dequeue(command->args);
+	}
+	argv[i] = NULL;
+	return argv;
 }

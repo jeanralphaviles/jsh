@@ -44,5 +44,6 @@ int executeCommand(struct AstSingleCommand*);
 
 // Utility
 bool fileExists(char*);
+char** getArgs(struct AstSingleCommand*);
 
 #endif

@@ -15,7 +15,7 @@
 #include "aliastable.h"
 #include "env.h"
 
-int checkBuiltInCommand(char* cmd, int argc, char** argv) {
+void executeBuiltinCommand(char* cmd, int argc, char** argv) {
 	if (strcmp(cmd, "cd") == 0) {
 		char* dest = (char*)malloc(MAX_LENGTH);
 		if (argc > 1) {
@@ -25,8 +25,6 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		else
 			sprintf(dest, "%s", getenv("HOME"));
 		int val = chdir(dest);
-		printf("'cd' command exited with code: %d\n", val);
-		return TRUE;
 	}
 	else if (strcmp(cmd, "alias") == 0) {
 		if (argc > 2) {
@@ -37,21 +35,18 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 		else if (argc == 1) {
 			printAliasTable();
 		}
-		return TRUE;
 	}
 	else if (strcmp(cmd, "unalias") == 0) {
 		if (argc > 1) {
 			char* name = argv[1];
 			unmapAlias(name);
 		}
-		return TRUE;
 	}
 	else if (strcmp(cmd, "printenv") == 0) {
 		if (argc <= 1)
 			printEnv();
 		else
 			printEnvSingleVar(argv[1]);
-		return TRUE;
 	}
 	else if (strcmp(cmd, "setenv") == 0) {
 		if (argc > 2) {
@@ -59,18 +54,26 @@ int checkBuiltInCommand(char* cmd, int argc, char** argv) {
 			char* word = argv[2];
 			setEnv(variable, word);
 		}
-		return TRUE;
 	}
 	else if (strcmp(cmd, "unsetenv") == 0) {
 		if (argc > 1) {
 			char* variable = argv[1];
 			unsetEnv(variable);
 		}
-		return TRUE;
 	}
 	else if (strcmp(cmd, "bye") == 0) {
 		exit(EXIT_SUCCESS);
-		return TRUE;
+
 	}
+}
+
+int isBuiltinCommand(char* cmd) {
+	if (strcmp(cmd, "cd") == 0) return TRUE;
+	else if (strcmp(cmd, "alias") == 0) return TRUE;
+	else if (strcmp(cmd, "unalias") == 0) return TRUE;
+	else if (strcmp(cmd, "printenv") == 0) return TRUE;
+	else if (strcmp(cmd, "setenv") == 0) return TRUE;
+	else if (strcmp(cmd, "unsetenv") == 0) return TRUE;
+	else if (strcmp(cmd, "bye") == 0) return TRUE;
 	return FALSE;
 }
