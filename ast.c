@@ -231,7 +231,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     bool failed = FALSE;
     while (i--) {
       int status;
-      if (wait(&status) == (EXIT_FAILURE & 0377)) { // See manpage exit(3)
+      if (wait(&status) == -1 || status != SUCCESS){
         failed = TRUE;
       }
     }
