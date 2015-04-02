@@ -14,8 +14,8 @@ EOF                               { exit(EXIT_SUCCESS); }
 "||"                              { return OR_IF; }
 [|\(\)&;<>]                       { return yytext[0]; }
 [0-9]+[<|>]                       { return IO_NUMBER; }
-\".*\"                            { yylval.string = strdup(yytext); yylval.string[strlen(yylval.string) - 1] = '\0';
-                                    yylval.string[0] = '\0'; yylval.string++; return WORD; }
+\".*\"                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0';
+                                    return WORD; }
 [a-zA-Z0-9\-\*\.\/(\$\{.*\})]+    { yylval.string = expandVariables(strdup(yytext)); return WORD; }
 [ \t\r]+                          { ; } /* Ignore Whitespace */
 .                                 { ; } /* No Match */
