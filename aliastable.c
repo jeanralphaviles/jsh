@@ -18,11 +18,14 @@ char* alias_keys[MAX_LENGTH];
 char* alias_values[MAX_LENGTH];
 static int alias_count = 0;
 
-void mapAlias(char*, char*);
-int checkAliasExists(char*);
-void deleteEntry(int);
-void unmapAlias(char*);
-void printAliasTable(void);
+char* getAlias(char* key) {
+	int i;
+	for (i = 0; i < alias_count; ++i) {
+		if (strcmp(key, alias_keys[i]) == 0)
+			return alias_values[i];
+	}
+	return key;
+}
 
 void mapAlias(char* name, char* toWord) {
   if (checkAliasExists(name)) {

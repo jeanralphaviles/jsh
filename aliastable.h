@@ -11,6 +11,8 @@
 void mapAlias(char* name, char* toWord);
 void unmapAlias(char* name);
 void printAliasTable();
+char* getAlias(char* key);
 int checkAliasExists(char* name);
+int isInfiniteAlias(char* name);
 
 #endif /* ALIASTABLE_H_ */

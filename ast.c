@@ -9,6 +9,7 @@
 #include "builtins.h"
 #include "queue.h"
 #include "utils.h"
+#include "aliastable.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));
@@ -29,10 +30,29 @@ struct AstPipeSequence* createAstPipeSequence() {
 struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, char* io_out) {
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
+  ast_single_command->args = createQueue();
+  if(checkAliasExists(cmd_name)) {
+	  char* alias = malloc(strlen(getAlias(cmd_name) + 1));
+	  strcpy(alias, getAlias(cmd_name));
+	  char* token = strtok(alias, " ");
+	  int i = 0;
+	  while(token != NULL) {
+		  if (i == 0) {
+			  cmd_name = token;
+			  enqueue(ast_single_command->args, cmd_name);
+		  }
+		  else {
+			  enqueue(ast_single_command->args, token);
+		  }
+	      token = strtok(NULL, " ");
+		  ++i;
+	  }
+  }
+  else
+	  enqueue(ast_single_command->args, cmd_name);
+
   ast_single_command->cmd_name = (char*)malloc(strlen(cmd_name) + 1);
   strcpy(ast_single_command->cmd_name, cmd_name);
-  ast_single_command->args = createQueue();
-  enqueue(ast_single_command->args, cmd_name);
   ast_single_command->io_in = io_in;
   ast_single_command->io_out = io_out;
   return ast_single_command;
