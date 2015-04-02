@@ -156,7 +156,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
             close(currPipe[READ_END]);
           }
           executeCommand(command); // Will not return unless there is an error
-          exit(1);
+          exit(EXIT_FAILURE);
           break;
         default: // In parent
           // Child has handled the write end
@@ -177,8 +177,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     bool failed = FALSE;
     while (i--) {
       int status;
-      wait(&status);
-      if (status == -1) {
+      if (wait(&status) == (EXIT_FAILURE & 0377)) { // See manpage exit(3)
         failed = TRUE;
       }
     }
@@ -187,7 +186,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
   }
 }
 
-int executeCommand(struct AstSingleCommand* command) {
+void executeCommand(struct AstSingleCommand* command) {
   char* cmd_name = command->cmd_name;
   char** argv = getArgs(command);
   // i.e. if ths command was /bin/ls
@@ -201,7 +200,7 @@ int executeCommand(struct AstSingleCommand* command) {
     }
     free(argv);
     free(cmd_name);
-    exit(1);
+    exit(EXIT_FAILURE);
   }
   char* path = getenv("PATH");
   char* token = strtok(path, ":");
@@ -214,7 +213,7 @@ int executeCommand(struct AstSingleCommand* command) {
     if (fileExists(filename)) {
       execv(filename, argv); // Will not return, unless it fails
       perror("wtf");
-      exit(1);
+      exit(EXIT_FAILURE);
     } else {
       free(filename);
       token = strtok(NULL, ":");
@@ -225,7 +224,7 @@ int executeCommand(struct AstSingleCommand* command) {
   setTermColor(stderr, oldTermColor);
   free(argv);
   free(cmd_name);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 bool fileExists(char* filename) {

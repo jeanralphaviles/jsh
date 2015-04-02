@@ -40,7 +40,7 @@ void addPipeSequenceWithSeparator(struct AstRoot*, struct AstPipeSequence*, int)
 // Execute
 int executeAstRoot(struct AstRoot*);
 int executePipeSequence(struct AstPipeSequence*);
-int executeCommand(struct AstSingleCommand*);
+void executeCommand(struct AstSingleCommand*);
 
 // Utility
 bool fileExists(char*);
