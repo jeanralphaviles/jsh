@@ -4,6 +4,7 @@
 
 #include "ast.h"
 #include "defines.h"
+#include "utils.h"
 
 extern int yyparse();
 extern int yy_scan_string(const char *);
@@ -16,7 +17,9 @@ int main(int argc, char* argv[]) {
   init();
 
   while (1) {
+    setTermColor(stderr, KCYN);
     fprintf(stderr, "jsh> ");
+    setTermColor(stderr, KNRM);
     if (!fgets(line, MAX_LENGTH, stdin)) {
       break;
     }
@@ -29,7 +32,9 @@ int main(int argc, char* argv[]) {
         free(astRoot); // Huge memory leak here :)
       }
     } else {
+      const char* oldTermColor = setTermColor(stderr, KRED);
       fprintf(stderr, "An error occurred\n");
+      setTermColor(stderr, oldTermColor);
     }
   }
   return 0;

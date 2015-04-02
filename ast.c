@@ -5,8 +5,8 @@
 #include <unistd.h>
 
 #include "ast.h"
-#include "defines.h"
 #include "builtins.h"
+#include "defines.h"
 #include "queue.h"
 #include "utils.h"
 #include "aliastable.h"
@@ -86,12 +86,12 @@ void addCommand(struct AstPipeSequence* pipe_sequence, struct AstSingleCommand* 
 // --AstRoot--
 void addPipeSequence(struct AstRoot* root, struct AstPipeSequence* pipe_sequence) {
   if (root->pipe_sequences == NULL) {
-    root->pipe_sequences =createQueue();
+    root->pipe_sequences = createQueue();
   }
   enqueue(root->pipe_sequences, pipe_sequence);
 }
 
-void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* pipe_sequence, int separator) { // 0 => &&, 1 => ||
+void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* pipe_sequence, int separator) {
   if (root->sequence_separators == NULL) {
     root->sequence_separators = createQueue();
   }
@@ -99,19 +99,46 @@ void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* 
     fprintf(stderr, "PipeSequences and Separators are messed up\n");
   }
   enqueue(root->pipe_sequences, pipe_sequence);
-  enqueue(root->sequence_separators, (void*)separator);
+  enqueue(root->sequence_separators, (void*)(unsigned long)separator); // LOL, portability
 }
 
 // Execute
 int executeAstRoot(struct AstRoot* root) {
   if (root == NULL || size(root->pipe_sequences) == 0) {
     return ERR_NOT_FOUND;
-  }
-  if (size(root->pipe_sequences) == 1) {
-    return executePipeSequence((struct AstPipeSequence*)front(root->pipe_sequences));
   } else {
-    // TODO
-    return ERR_NOT_FOUND;
+    bool async = root->async;
+    if (async) {
+      if (fork() > 0) { // Fork and let the children work
+        return SUCCESS;
+      }
+    }
+    int status;
+    int sequence_separator;
+    struct AstPipeSequence* pipe_sequence;
+    struct queue* pipe_sequences = root->pipe_sequences;
+    struct queue* sequence_separators = root->sequence_separators;
+    while (size(pipe_sequences) > 0) {
+      pipe_sequence = front(pipe_sequences);
+      dequeue(pipe_sequences);
+      status = executePipeSequence(pipe_sequence);
+      if (size(sequence_separators) > 0) {
+        sequence_separator = (int)(unsigned long)front(sequence_separators); // Also LOL
+        dequeue(sequence_separators);
+        if ((sequence_separator == DAND && status != SUCCESS) ||
+            (sequence_separator == DPIPE && status == SUCCESS)) {
+          if (async == FALSE) { // Don't want to return if we're the child
+            return ERR_SEQUENCE;
+          } else {
+            exit(EXIT_FAILURE);
+          }
+        }
+      }
+    }
+    if (async) { // Don't want to return if we're the child
+      exit(EXIT_SUCCESS);
+    }
+    return status;
   }
 }
 
@@ -133,12 +160,16 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         pipe(currPipe);
       }
       if (isBuiltinCommand(cmd_name)) {
-	      int argc = size(command->args);
-	      char** argv = getArgs(command);
-		  executeBuiltinCommand(cmd_name, argc, argv);
-		  free(argv);
-		  free(cmd_name);
-		  continue;
+        int argc = size(command->args);
+        char** argv = getArgs(command);
+        executeBuiltinCommand(cmd_name, argc, argv);
+        int i = 0;
+        while (argv[i] != NULL) {
+          free(argv[i++]);
+        }
+        free(argv);
+        free(cmd_name);
+        continue;
       }
       switch (pids[i] = fork()) {
         case -1:
@@ -158,7 +189,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
             close(currPipe[READ_END]);
           }
           executeCommand(command); // Will not return unless there is an error
-          exit(1);
+          exit(EXIT_FAILURE);
           break;
         default: // In parent
           // Child has handled the write end
@@ -175,27 +206,34 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
           break;
       }
     }
-    // Wait for every process to finish
+    // Wait for every process to finish. Record if any failed.
+    bool failed = FALSE;
     while (i--) {
       int status;
-      wait(&status);
+      if (wait(&status) == (EXIT_FAILURE & 0377)) { // See manpage exit(3)
+        failed = TRUE;
+      }
     }
     free(pids);
-    return SUCCESS;
+    return failed == TRUE ? ERROR : SUCCESS;
   }
 }
 
-int executeCommand(struct AstSingleCommand* command) {
+void executeCommand(struct AstSingleCommand* command) {
   char* cmd_name = command->cmd_name;
   char** argv = getArgs(command);
   // i.e. if ths command was /bin/ls
   if (isAbsolutePath(cmd_name)) {
-	  if (fileExists(cmd_name)) {
-	      execv(cmd_name, argv); // Will not return, unless it fails
-	  }
-	  free(argv);
-	  free(cmd_name);
-	  exit(1);
+    if (fileExists(cmd_name)) {
+        execv(cmd_name, argv); // Will not return, unless it fails
+    }
+    int i = 0;
+    while (argv[i] != NULL) {
+      free(argv[i++]);
+    }
+    free(argv);
+    free(cmd_name);
+    exit(EXIT_FAILURE);
   }
   char* path = getenv("PATH");
   char* token = strtok(path, ":");
@@ -208,16 +246,18 @@ int executeCommand(struct AstSingleCommand* command) {
     if (fileExists(filename)) {
       execv(filename, argv); // Will not return, unless it fails
       perror("wtf");
-      exit(1); // Error
+      exit(EXIT_FAILURE);
     } else {
       free(filename);
       token = strtok(NULL, ":");
     }
   }
-  // Never found
+  const char* oldTermColor = setTermColor(stderr, KRED);
+  fprintf(stderr, "jsh: command not found: %s\n", cmd_name);
+  setTermColor(stderr, oldTermColor);
   free(argv);
   free(cmd_name);
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 bool fileExists(char* filename) {
@@ -226,14 +266,12 @@ bool fileExists(char* filename) {
 }
 
 char** getArgs(struct AstSingleCommand* command) {
-	int i;
-
-	// Get argv
-	char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
-	for (i = 0; size(command->args) > 0; ++i) {
-		argv[i] = (char*) front(command->args);
-		dequeue(command->args);
-	}
-	argv[i] = NULL;
-	return argv;
+  int i;
+  char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
+  for (i = 0; size(command->args) > 0; ++i) {
+    argv[i] = (char*) front(command->args);
+    dequeue(command->args);
+  }
+  argv[i] = NULL;
+  return argv;
 }
