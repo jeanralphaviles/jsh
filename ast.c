@@ -24,50 +24,41 @@ struct AstPipeSequence* createAstPipeSequence() {
   struct AstPipeSequence* ast_pipe_sequence = (struct AstPipeSequence*)malloc(sizeof(struct AstPipeSequence));
 
   ast_pipe_sequence->commands = createQueue();
+  ast_pipe_sequence->io_in = NULL;
+  ast_pipe_sequence->io_out = NULL;
   return ast_pipe_sequence;
 }
 
-struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, char* io_out) {
+struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
   ast_single_command->args = createQueue();
   if(checkAliasExists(cmd_name)) {
-	  char* alias = malloc(strlen(getAlias(cmd_name) + 1));
-	  strcpy(alias, getAlias(cmd_name));
-	  char* token = strtok(alias, " ");
-	  int i = 0;
-	  while(token != NULL) {
-		  if (i == 0) {
-			  cmd_name = token;
-			  enqueue(ast_single_command->args, cmd_name);
-		  }
-		  else {
-			  enqueue(ast_single_command->args, token);
-		  }
-	      token = strtok(NULL, " ");
-		  ++i;
-	  }
+    char* alias = malloc(strlen(getAlias(cmd_name) + 1));
+    strcpy(alias, getAlias(cmd_name));
+    char* token = strtok(alias, " ");
+    int i = 0;
+    while(token != NULL) {
+      if (i == 0) {
+        cmd_name = token;
+        enqueue(ast_single_command->args, cmd_name);
+      } else {
+        enqueue(ast_single_command->args, token);
+      }
+      token = strtok(NULL, " ");
+      ++i;
+    }
+  } else {
+    enqueue(ast_single_command->args, cmd_name);
   }
-  else
-	  enqueue(ast_single_command->args, cmd_name);
 
   ast_single_command->cmd_name = (char*)malloc(strlen(cmd_name) + 1);
   strcpy(ast_single_command->cmd_name, cmd_name);
-  ast_single_command->io_in = io_in;
-  ast_single_command->io_out = io_out;
   return ast_single_command;
 }
 
 // Member Functions
 // --AstSingleCommand--
-void setIoIn(struct AstSingleCommand* ast, char* in) {
-  ast->io_in = strdup(in);
-}
-
-void setIoOut(struct AstSingleCommand* ast, char* out) {
-  ast->io_out = strdup(out);
-}
-
 void addArgs(struct AstSingleCommand* ast, char* args) {
   if (ast->args == NULL) {
     ast->args = createQueue();
@@ -81,6 +72,14 @@ void addCommand(struct AstPipeSequence* pipe_sequence, struct AstSingleCommand* 
     pipe_sequence->commands = createQueue();
   }
   enqueue(pipe_sequence->commands, command);
+}
+
+void setIoIn(struct AstPipeSequence* pipe_sequence, char* in) {
+  pipe_sequence->io_in = strdup(in);
+}
+
+void setIoOut(struct AstPipeSequence* pipe_sequence, char* out) {
+  pipe_sequence->io_out = strdup(out);
 }
 
 // --AstRoot--

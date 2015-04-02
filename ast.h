@@ -12,27 +12,27 @@ struct AstRoot {
 
 struct AstPipeSequence {
   struct queue *commands;
+  char* io_in;
+  char* io_out;
 };
 
 struct AstSingleCommand {
   char* cmd_name;
   struct queue* args;
-  char* io_in;
-  char* io_out;
 };
 
 // All create functions assume owenership of arguments
 struct AstRoot* createAstRoot();
 struct AstPipeSequence* createAstPipeSequence();
-struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, char* io_out);
+struct AstSingleCommand* createAstSingleCommand(char* cmd_name);
 
 // Member Functions
 // --AstSingleCommand--
-void setIoIn(struct AstSingleCommand*, char*);
-void setIoOut(struct AstSingleCommand*, char*);
 void addArgs(struct AstSingleCommand*, char*);
 // --AstPipeSequence--
 void addCommand(struct AstPipeSequence*, struct AstSingleCommand*);
+void setIoIn(struct AstPipeSequence*, char*);
+void setIoOut(struct AstPipeSequence*, char*);
 // --AstRoot--
 void addPipeSequence(struct AstRoot*, struct AstPipeSequence*);
 void addPipeSequenceWithSeparator(struct AstRoot*, struct AstPipeSequence*, int); // 1 => &&, 2 => ||
