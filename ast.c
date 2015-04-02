@@ -66,12 +66,12 @@ void addCommand(struct AstPipeSequence* pipe_sequence, struct AstSingleCommand* 
 // --AstRoot--
 void addPipeSequence(struct AstRoot* root, struct AstPipeSequence* pipe_sequence) {
   if (root->pipe_sequences == NULL) {
-    root->pipe_sequences =createQueue();
+    root->pipe_sequences = createQueue();
   }
   enqueue(root->pipe_sequences, pipe_sequence);
 }
 
-void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* pipe_sequence, int separator) { // 0 => &&, 1 => ||
+void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* pipe_sequence, int separator) {
   if (root->sequence_separators == NULL) {
     root->sequence_separators = createQueue();
   }
@@ -79,19 +79,33 @@ void addPipeSequenceWithSeparator(struct AstRoot* root, struct AstPipeSequence* 
     fprintf(stderr, "PipeSequences and Separators are messed up\n");
   }
   enqueue(root->pipe_sequences, pipe_sequence);
-  enqueue(root->sequence_separators, (void*)separator);
+  enqueue(root->sequence_separators, (void*)(unsigned long)separator); // LOL, portability
 }
 
 // Execute
 int executeAstRoot(struct AstRoot* root) {
   if (root == NULL || size(root->pipe_sequences) == 0) {
     return ERR_NOT_FOUND;
-  }
-  if (size(root->pipe_sequences) == 1) {
-    return executePipeSequence((struct AstPipeSequence*)front(root->pipe_sequences));
   } else {
-    // TODO
-    return ERR_NOT_FOUND;
+    int status;
+    int sequence_separator;
+    struct AstPipeSequence* pipe_sequence;
+    struct queue* pipe_sequences = root->pipe_sequences;
+    struct queue* sequence_separators = root->sequence_separators;
+    while (size(pipe_sequences) > 0) {
+      pipe_sequence = front(pipe_sequences);
+      dequeue(pipe_sequences);
+      status = executePipeSequence(pipe_sequence);
+      if (size(sequence_separators) > 0) {
+        sequence_separator = (int)(unsigned long)front(sequence_separators); // Also LOL
+        dequeue(sequence_separators);
+        if ((sequence_separator == DAND && status != SUCCESS) ||
+            (sequence_separator == DPIPE && status == SUCCESS)) {
+          return ERR_SEQUENCE;
+        }
+      }
+    }
+    return status;
   }
 }
 
@@ -159,13 +173,17 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
           break;
       }
     }
-    // Wait for every process to finish
+    // Wait for every process to finish. Record if any failed.
+    bool failed = FALSE;
     while (i--) {
       int status;
       wait(&status);
+      if (status == -1) {
+        failed = TRUE;
+      }
     }
     free(pids);
-    return SUCCESS;
+    return failed == TRUE ? ERROR : SUCCESS;
   }
 }
 

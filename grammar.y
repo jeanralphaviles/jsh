@@ -49,7 +49,7 @@ int yywrap() {
 %start  complete_command
 %%
 complete_command   : pipe_sequence {$$ = createAstRoot(); addPipeSequence($$, $1); astRoot = $$;}
-                   | complete_command sequence_separator pipe_sequence {addPipeSequenceWithSeparator($1, $3, ($2 == AND_IF) ? 1 : 2); $$ = $1; astRoot = $$;}
+                   | complete_command sequence_separator pipe_sequence {addPipeSequenceWithSeparator($1, $3, ($2 == AND_IF) ? DAND : DPIPE); $$ = $1; astRoot = $$;}
                    | complete_command '&' {$$->async = TRUE; astRoot = $$;}
                    | complete_command NEWLINE {$$ = $1; astRoot = $$;}
                    | NEWLINE {$$ = createAstRoot(); astRoot = $$;}
@@ -57,8 +57,8 @@ complete_command   : pipe_sequence {$$ = createAstRoot(); addPipeSequence($$, $1
 pipe_sequence      : single_command {$$ = createAstPipeSequence(); addCommand($$, $1);}
                    | pipe_sequence '|' single_command {addCommand($1, $3); $$ = $1;}
                    ;
-sequence_separator : AND_IF {$$ = $1;}
-                   | OR_IF {$$ = $1;}
+sequence_separator : AND_IF {$$ = AND_IF;}
+                   | OR_IF {$$ = OR_IF;}
                    ;
 single_command     : cmd_name {$$ = createAstSingleCommand($1, NULL, NULL);}
                    | single_command io_in {setIoIn($1, $2); $$ = $1;}
