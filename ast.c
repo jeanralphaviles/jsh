@@ -87,6 +87,12 @@ int executeAstRoot(struct AstRoot* root) {
   if (root == NULL || size(root->pipe_sequences) == 0) {
     return ERR_NOT_FOUND;
   } else {
+    bool async = root->async;
+    if (async) {
+      if (fork() > 0) { // Fork and let the children work
+        return SUCCESS;
+      }
+    }
     int status;
     int sequence_separator;
     struct AstPipeSequence* pipe_sequence;
@@ -101,9 +107,16 @@ int executeAstRoot(struct AstRoot* root) {
         dequeue(sequence_separators);
         if ((sequence_separator == DAND && status != SUCCESS) ||
             (sequence_separator == DPIPE && status == SUCCESS)) {
-          return ERR_SEQUENCE;
+          if (async == FALSE) { // Don't want to return if we're the child
+            return ERR_SEQUENCE;
+          } else {
+            exit(EXIT_FAILURE);
+          }
         }
       }
+    }
+    if (async) { // Don't want to return if we're the child
+      exit(EXIT_SUCCESS);
     }
     return status;
   }
