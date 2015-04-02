@@ -23,7 +23,8 @@
 #define ERR_NOT_FOUND 127
 #define ERR_FORK 126
 #define ERR_SEQUENCE 125
-#define ERROR 124
+#define ERR_PERMISSION 124
+#define ERROR 123
 #define SUCCESS 0
 
 // Regex

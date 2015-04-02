@@ -126,15 +126,14 @@ int executeAstRoot(struct AstRoot* root) {
         dequeue(sequence_separators);
         if ((sequence_separator == DAND && status != SUCCESS) ||
             (sequence_separator == DPIPE && status == SUCCESS)) {
-          if (async == FALSE) { // Don't want to return if we're the child
-            return ERR_SEQUENCE;
-          } else {
+          if (async == TRUE) { // Don't want to return if we're the child
             exit(EXIT_FAILURE);
           }
+          return ERR_SEQUENCE;
         }
       }
     }
-    if (async) { // Don't want to return if we're the child
+    if (async == TRUE) { // Don't want to return if we're the child
       exit(EXIT_SUCCESS);
     }
     return status;
@@ -150,6 +149,29 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     int lastPipe = -1;
     int i;
     pid_t* pids = (pid_t*)malloc(sizeof(pid_t)*size(commands));
+
+    // File IO
+    int old_stdin = dup(STDIN_FILENO);
+    int old_stdout = dup(STDOUT_FILENO);
+    char* io_in = pipe_sequence->io_in;
+    if (io_in != NULL) {
+      if (freopen(io_in, "r", stdin) == NULL) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_IN\n", io_in);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      }
+    }
+    char* io_out = pipe_sequence->io_out;
+    if (io_out != NULL) {
+      if (freopen(io_out, "w", stdout) == NULL) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_OUT\n", io_out);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      }
+    }
+
     for (i = 0; size(commands) > 0; ++i) {
       // Get next command
       struct AstSingleCommand* command = (struct AstSingleCommand*)front(commands);
@@ -214,6 +236,17 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       }
     }
     free(pids);
+    // Close Files used for IO and reopen streams
+    if (io_in != NULL) {
+      fflush(stdin);
+      dup2(old_stdin, STDIN_FILENO);
+      free(io_in);
+    }
+    if (io_out != NULL) {
+      fflush(stdout);
+      dup2(old_stdout, STDOUT_FILENO);
+      free(io_out);
+    }
     return failed == TRUE ? ERROR : SUCCESS;
   }
 }
