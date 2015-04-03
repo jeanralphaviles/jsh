@@ -30,6 +30,7 @@ struct AstPipeSequence* createAstPipeSequence() {
   ast_pipe_sequence->io_out = NULL;
   ast_pipe_sequence->io_err = NULL;
   ast_pipe_sequence->err2out = FALSE;
+  ast_pipe_sequence->append_out = FALSE;
   return ast_pipe_sequence;
 }
 
@@ -39,7 +40,7 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
 
   ast_single_command->args = createQueue();
   if(checkAliasExists(cmd_name)) {
-	char* alias = strdup(getAlias(cmd_name));
+    char* alias = strdup(getAlias(cmd_name));
     char* token = strtok(alias, " ");
     int i = 0;
     while(token != NULL) {
@@ -84,9 +85,10 @@ void setIoIn(struct AstPipeSequence* pipe_sequence, char* in) {
   strcpy(pipe_sequence->io_in, in);
 }
 
-void setIoOut(struct AstPipeSequence* pipe_sequence, char* out) {
+void setIoOut(struct AstPipeSequence* pipe_sequence, char* out, bool append_out) {
   pipe_sequence->io_out = (char*)malloc(strlen(out) + 1);
   strcpy(pipe_sequence->io_out, out);
+  pipe_sequence->append_out = append_out;
 }
 
 void setIoErr(struct AstPipeSequence* pipe_sequence, char* out) {
@@ -183,7 +185,8 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     }
     char* io_out = pipe_sequence->io_out;
     if (io_out != NULL) {
-      if (freopen(io_out, "w", stdout) == NULL) {
+      char* file_mode = pipe_sequence->append_out ? "a" : "w";
+      if (freopen(io_out, file_mode, stdout) == NULL) {
         char* oldColor = setTermColor(KRED);
         fprintf(stderr, "Cannot open %s as File IO_OUT\n", io_out);
         setTermColor(oldColor);
