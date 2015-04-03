@@ -34,7 +34,7 @@ int yywrap() {
 %token<string>  NAME
 %token<string>  NEWLINE
 %token<string>  IO_NUMBER
-
+%token<string>  IO_COMBINE
 
 %token<integer>  AND_IF    OR_IF
 /*              '&&'      '||' */
@@ -57,9 +57,10 @@ complete_command   : pipe_sequence {$$ = createAstRoot(); addPipeSequence($$, $1
                    ;
 pipe_sequence      : single_command {$$ = createAstPipeSequence(); addCommand($$, $1);}
                    | pipe_sequence '|' single_command {addCommand($1, $3); $$ = $1; if ($$->io_in != NULL || $$->io_out != NULL || $$->io_err != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "file IO must occur at end of pipe_sequence\n"); setTermColor(stderr, KNRM); return ERROR;}}
-                   | pipe_sequence io_in {if ($1->io_in != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated file IO_in\n"); setTermColor(stderr, KNRM); return ERROR;} setIoIn($1, $2); $$ = $1;}
-                   | pipe_sequence io_out {if ($1->io_out != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated file IO_out\n"); setTermColor(stderr, KNRM); return ERROR;} setIoOut($1, $2); $$ = $1;}
-                   | pipe_sequence io_err {if ($1->io_err != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated file io_stdout\n"); setTermColor(stderr, KNRM); return ERROR;} setIoErr($1, $2); $$ = $1;}
+                   | pipe_sequence io_in {if ($1->io_in != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated IO_in\n"); setTermColor(stderr, KNRM); return ERROR;} setIoIn($1, $2); $$ = $1;}
+                   | pipe_sequence io_out {if ($1->io_out != NULL) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated  O_out\n"); setTermColor(stderr, KNRM); return ERROR;} setIoOut($1, $2); $$ = $1;}
+                   | pipe_sequence io_err {if ($1->io_err != NULL || $1->err2out) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated io_stdout\n"); setTermColor(stderr, KNRM); return ERROR;} setIoErr($1, $2); $$ = $1;}
+                   | pipe_sequence io_com {if ($1->io_err != NULL || $1->err2out) {setTermColor(stderr, KRED); fprintf(stderr, "duplicated io_stdout\n"); setTermColor(stderr, KNRM); return ERROR;} setIoErr($1, NULL); $$ = $1;}
                    ;
 sequence_separator : AND_IF {$$ = AND_IF;}
                    | OR_IF {$$ = OR_IF;}
@@ -74,6 +75,8 @@ io_in              : '<'        filename {$$ = $2;}
 io_out             : '>'        filename {$$ = $2;}
                    ;
 io_err             : IO_NUMBER  filename {if(strcmp("2>", $1) != 0){setTermColor(stderr, KRED); fprintf(stderr, "IO_NUMBER %s not recognized\n", $1); setTermColor(stderr, KNRM); return ERROR;}; $$ = $2;}
+                   ;
+io_com             : IO_COMBINE
                    ;
 filename           : WORD {$$ = $1;}
                    ;

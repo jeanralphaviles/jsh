@@ -12,6 +12,7 @@ EOF                               { exit(EXIT_SUCCESS); }
 \n+                               { ++linenum; return NEWLINE; }
 "&&"                              { return AND_IF; }
 "||"                              { return OR_IF; }
+2>&1                              { return IO_COMBINE; }
 [0-9]>                            { strcpy(yylval.string, yytext); return IO_NUMBER; }
 [|\(\)&;<>]                       { return yytext[0]; }
 \".*\"                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0';

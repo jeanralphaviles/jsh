@@ -15,6 +15,7 @@ struct AstPipeSequence {
   char* io_in;
   char* io_out;
   char* io_err;
+  bool err2out;
 };
 
 struct AstSingleCommand {

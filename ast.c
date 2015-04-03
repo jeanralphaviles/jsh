@@ -28,6 +28,7 @@ struct AstPipeSequence* createAstPipeSequence() {
   ast_pipe_sequence->io_in = NULL;
   ast_pipe_sequence->io_out = NULL;
   ast_pipe_sequence->io_err = NULL;
+  ast_pipe_sequence->err2out = FALSE;
   return ast_pipe_sequence;
 }
 
@@ -89,8 +90,14 @@ void setIoOut(struct AstPipeSequence* pipe_sequence, char* out) {
 }
 
 void setIoErr(struct AstPipeSequence* pipe_sequence, char* out) {
-  pipe_sequence->io_err = (char*)malloc(strlen(out) + 1);
-  strcpy(pipe_sequence->io_err, out);
+  if (out == NULL) {
+    pipe_sequence->io_err = NULL;
+    pipe_sequence->err2out = TRUE;
+  } else {
+    pipe_sequence->io_err = (char*)malloc(strlen(out) + 1);
+    strcpy(pipe_sequence->io_err, out);
+    pipe_sequence->err2out = FALSE;
+  }
 }
 
 // --AstRoot--
@@ -194,6 +201,8 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       } else {
         dup2(fd, STDERR_FILENO);
       }
+    } else if (pipe_sequence->err2out) {
+      dup2(STDOUT_FILENO, STDERR_FILENO);
     }
 
     for (i = 0; size(commands) > 0; ++i) {
@@ -271,7 +280,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       dup2(old_stdout, STDOUT_FILENO);
       free(io_out);
     }
-    if (io_err != NULL) {
+    if (io_err != NULL || pipe_sequence->err2out) {
       fflush(stderr);
       dup2(old_stderr, STDERR_FILENO);
       free(io_err);
