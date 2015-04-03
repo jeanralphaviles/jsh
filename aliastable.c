@@ -50,6 +50,8 @@ int checkAliasExists(char* name) {
 
 void deleteEntry(int index) {
   int i;
+  char* dkey = alias_keys[index];
+  char* dvalue = alias_values[index];
   for (i = index; i < alias_count; ++i) {
     // Shift every entry alias to the left (inefficient!) :/
     // Thus overwriting the deleted entry.
@@ -57,8 +59,8 @@ void deleteEntry(int index) {
     alias_values[i] = alias_values[i + 1];
   }
   // Dealloc the last entry.
-  free(alias_keys[alias_count - 1]);
-  free(alias_values[alias_count - 1]);
+  free(dkey);
+  free(dvalue);
   --alias_count;
 }
 

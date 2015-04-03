@@ -38,8 +38,7 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
 
   ast_single_command->args = createQueue();
   if(checkAliasExists(cmd_name)) {
-    char* alias = malloc(strlen(getAlias(cmd_name) + 1));
-    strcpy(alias, getAlias(cmd_name));
+	char* alias = strdup(getAlias(cmd_name));
     char* token = strtok(alias, " ");
     int i = 0;
     while(token != NULL) {
@@ -221,9 +220,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         while (argv[j] != NULL) {
            free(argv[j++]);
         }
-        printf("Freeing Argv\n");
         free(argv);
-        printf("Freeing cmd_name\n");
         free(cmd_name);
         continue;
       }
