@@ -1,4 +1,5 @@
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -230,6 +231,9 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
           fprintf(stderr, "failed to fork\n");
           break;
         case 0: // In child
+          // Re-enable Interrupts
+          signal(SIGINT, SIG_DFL);  /* enable ctrl+C */
+          signal(SIGQUIT, SIG_DFL); /* enable ctrl-\ */
           if (lastPipe >= 0) {
             // We have a pipe to read from
             dup2(lastPipe, STDIN_FILENO); // stdin <= lastpipe
