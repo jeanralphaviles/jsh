@@ -32,8 +32,6 @@ void mapAlias(char* name, char* toWord) {
     fprintf(stderr, "Alias: %s Already Exists!\n", name);
     return;
   }
-  fprintf(stderr, "Alias: %s key\n", name);
-  fprintf(stderr, "Alias: %s value\n", toWord);
   alias_keys[alias_count] = strdup(name);
   alias_values[alias_count] = strdup(toWord);
   ++alias_count;
@@ -58,7 +56,7 @@ void deleteEntry(int index) {
     alias_keys[i] = alias_keys[i + 1];
     alias_values[i] = alias_values[i + 1];
   }
-  // Dealloc the last entry.
+  // Dealloc the removed entry.
   free(dkey);
   free(dvalue);
   --alias_count;
@@ -83,5 +81,5 @@ void unmapAlias(char* name) {
 void printAliasTable() {
   int i;
   for (i = 0; i < alias_count; ++i)
-    printf("%s=%s\n", alias_keys[i], alias_values[i]);
+    printf("%s='%s'\n", alias_keys[i], alias_values[i]);
 }
