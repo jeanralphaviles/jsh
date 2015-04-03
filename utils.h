@@ -10,5 +10,8 @@
 
 void fixPath(char* path);
 int isAbsolutePath(char* path);
+char* resolveEscapeSequences(char* line);
+int isMetaCharacter(char character);
+int isEscapeCharacter(char character);
 
 #endif /* UTILS_H_ */

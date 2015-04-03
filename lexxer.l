@@ -3,6 +3,7 @@
 
 #include "ast.h"
 #include "env.h"
+#include "utils.h"
 #include "y.tab.h"
 extern int linenum;
 %}
@@ -14,10 +15,13 @@ EOF                               { exit(EXIT_SUCCESS); }
 "||"                              { return OR_IF; }
 2>&1                              { return IO_COMBINE; }
 [0-9]>                            { strcpy(yylval.string, yytext); return IO_NUMBER; }
-[|\(\)&;<>]                       { return yytext[0]; }
 \".*\"                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0';
                                     return WORD; }
-[a-zA-Z0-9\-\*\.\/(\$\{.*\}))_]+  { yylval.string = expandVariables(strdup(yytext)); return WORD; }
+[a-zA-Z0-9\-\*\.\/\$\{\}_\\\&\<\>|\"]+  { if (isMetaCharacter(yytext[0])) return yytext[0]; else yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
 [ \t\r]+                          { ; } /* Ignore Whitespace */
 .                                 { ; } /* No Match */
 %%
+
+// [a-zA-Z0-9\-\*\.\/(\$\{.*\})_]+  { yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
+// ((a-z)|(A-Z)|(0-9)|(\-)|(\*)|(\.)|(\/)|(\$\{.*\})|(\&)|(_))+  { yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
+// [|\(\)&;<>]                       { return yytext[0]; }

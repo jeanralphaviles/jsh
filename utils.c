@@ -39,3 +39,53 @@ const char* setTermColor(FILE* stream, const char* newColor) {
   fprintf(stream, "%s", newColor);
   return oldColor;
 }
+
+char* resolveEscapeSequences(char* line) {
+	int length = strlen(line);
+	char* copy = (char*) malloc(length + 1);
+	int i;
+	int foundEscape = FALSE;
+	int newLength = 0;
+	for (i = 0; i < length; ++i) {
+		char cur = line[i];
+		if (foundEscape) {
+			if (isEscapeCharacter(cur)) {
+				copy[newLength] = cur;
+				newLength++;
+			}
+			else {
+				fprintf(stderr, "Unrecognized escape sequence \\%d\n", cur);
+			}
+			foundEscape = FALSE;
+			continue;
+		}
+
+		// Found an escape sequence
+		if (cur == '\\') {
+			foundEscape = TRUE;
+		}
+		else {
+			copy[newLength] = cur;
+			newLength++;
+		}
+	}
+	copy[newLength] = '\0';
+	free(line);
+	return copy;
+}
+
+int isMetaCharacter(char character) {
+	char metaCharacters[5] = { '&', '|', '"', '<', '>' };
+	int i;
+	for (i = 0; i < 5; ++i) {
+		if (character == metaCharacters[i])
+			return TRUE;
+	}
+	return FALSE;
+}
+
+int isEscapeCharacter(char character) {
+	char backslashChar = '\\';
+	if (isMetaCharacter(character)) return TRUE;
+	return character == backslashChar;
+}
