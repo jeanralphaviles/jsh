@@ -1,15 +1,16 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "aliastable.h"
 #include "ast.h"
 #include "builtins.h"
 #include "defines.h"
 #include "queue.h"
 #include "utils.h"
-#include "aliastable.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));
@@ -26,6 +27,7 @@ struct AstPipeSequence* createAstPipeSequence() {
   ast_pipe_sequence->commands = createQueue();
   ast_pipe_sequence->io_in = NULL;
   ast_pipe_sequence->io_out = NULL;
+  ast_pipe_sequence->io_err = NULL;
   return ast_pipe_sequence;
 }
 
@@ -59,11 +61,13 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
 
 // Member Functions
 // --AstSingleCommand--
-void addArgs(struct AstSingleCommand* ast, char* args) {
+void addArgs(struct AstSingleCommand* ast, char* arg) {
   if (ast->args == NULL) {
     ast->args = createQueue();
   }
-  enqueue(ast->args, args);
+  char* temp = malloc(strlen(arg) + 1);
+  strcpy(temp, arg);
+  enqueue(ast->args, temp);
 }
 
 // --AstPipeSequence--
@@ -75,11 +79,18 @@ void addCommand(struct AstPipeSequence* pipe_sequence, struct AstSingleCommand* 
 }
 
 void setIoIn(struct AstPipeSequence* pipe_sequence, char* in) {
-  pipe_sequence->io_in = strdup(in);
+  pipe_sequence->io_in = (char*)malloc(strlen(in) + 1);
+  strcpy(pipe_sequence->io_in, in);
 }
 
 void setIoOut(struct AstPipeSequence* pipe_sequence, char* out) {
-  pipe_sequence->io_out = strdup(out);
+  pipe_sequence->io_out = (char*)malloc(strlen(out) + 1);
+  strcpy(pipe_sequence->io_out, out);
+}
+
+void setIoErr(struct AstPipeSequence* pipe_sequence, char* out) {
+  pipe_sequence->io_err = (char*)malloc(strlen(out) + 1);
+  strcpy(pipe_sequence->io_err, out);
 }
 
 // --AstRoot--
@@ -153,6 +164,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     // File IO
     int old_stdin = dup(STDIN_FILENO);
     int old_stdout = dup(STDOUT_FILENO);
+    int old_stderr = dup(STDERR_FILENO);
     char* io_in = pipe_sequence->io_in;
     if (io_in != NULL) {
       if (freopen(io_in, "r", stdin) == NULL) {
@@ -169,6 +181,18 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         fprintf(stderr, "Cannot open %s as File IO_OUT\n", io_out);
         setTermColor(oldColor);
         return ERR_PERMISSION;
+      }
+    }
+    char* io_err = pipe_sequence->io_err;
+    if (io_err != NULL) {
+      int fd;
+      if ((fd = open(io_err, O_CREAT|O_TRUNC|O_WRONLY, 0777)) == -1) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_ERR\n", io_err);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      } else {
+        dup2(fd, STDERR_FILENO);
       }
     }
 
@@ -247,6 +271,11 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       dup2(old_stdout, STDOUT_FILENO);
       free(io_out);
     }
+    if (io_err != NULL) {
+      fflush(stderr);
+      dup2(old_stderr, STDERR_FILENO);
+      free(io_err);
+    }
     return failed == TRUE ? ERROR : SUCCESS;
   }
 }
@@ -301,7 +330,7 @@ char** getArgs(struct AstSingleCommand* command) {
   int i;
   char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
   for (i = 0; size(command->args) > 0; ++i) {
-    argv[i] = (char*) front(command->args);
+    argv[i] = (char*)front(command->args);
     dequeue(command->args);
   }
   argv[i] = NULL;

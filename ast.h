@@ -14,6 +14,7 @@ struct AstPipeSequence {
   struct queue *commands;
   char* io_in;
   char* io_out;
+  char* io_err;
 };
 
 struct AstSingleCommand {
@@ -33,6 +34,7 @@ void addArgs(struct AstSingleCommand*, char*);
 void addCommand(struct AstPipeSequence*, struct AstSingleCommand*);
 void setIoIn(struct AstPipeSequence*, char*);
 void setIoOut(struct AstPipeSequence*, char*);
+void setIoErr(struct AstPipeSequence*, char*);
 // --AstRoot--
 void addPipeSequence(struct AstRoot*, struct AstPipeSequence*);
 void addPipeSequenceWithSeparator(struct AstRoot*, struct AstPipeSequence*, int); // 1 => &&, 2 => ||
