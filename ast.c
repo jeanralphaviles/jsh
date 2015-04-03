@@ -28,6 +28,7 @@ struct AstPipeSequence* createAstPipeSequence() {
 }
 
 struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, char* io_out) {
+  fprintf(stderr, "Command Name coming in: %s\n", cmd_name);
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
   ast_single_command->args = createQueue();
@@ -38,6 +39,7 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, cha
 	  int i = 0;
 	  while(token != NULL) {
 		  if (i == 0) {
+			  free(cmd_name);
 			  cmd_name = token;
 			  enqueue(ast_single_command->args, cmd_name);
 		  }
@@ -163,11 +165,13 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         int argc = size(command->args);
         char** argv = getArgs(command);
         executeBuiltinCommand(cmd_name, argc, argv);
-        int i = 0;
-        while (argv[i] != NULL) {
-          free(argv[i++]);
+        int j = 0;
+        while (argv[j] != NULL) {
+           free(argv[j++]);
         }
+        printf("Freeing Argv\n");
         free(argv);
+        printf("Freeing cmd_name\n");
         free(cmd_name);
         continue;
       }
