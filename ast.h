@@ -16,6 +16,7 @@ struct AstPipeSequence {
   char* io_out;
   char* io_err;
   bool err2out;
+  bool append_out;
 };
 
 struct AstSingleCommand {
@@ -34,7 +35,7 @@ void addArgs(struct AstSingleCommand*, char*);
 // --AstPipeSequence--
 void addCommand(struct AstPipeSequence*, struct AstSingleCommand*);
 void setIoIn(struct AstPipeSequence*, char*);
-void setIoOut(struct AstPipeSequence*, char*);
+void setIoOut(struct AstPipeSequence*, char*, bool);
 void setIoErr(struct AstPipeSequence*, char*);
 // --AstRoot--
 void addPipeSequence(struct AstRoot*, struct AstPipeSequence*);
