@@ -35,7 +35,6 @@ struct AstPipeSequence* createAstPipeSequence() {
 }
 
 struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
-  fprintf(stderr, "Command Name coming in: %s\n", cmd_name);
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
   ast_single_command->args = createQueue();

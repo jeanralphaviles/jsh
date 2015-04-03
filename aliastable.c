@@ -19,21 +19,18 @@ char* alias_values[MAX_LENGTH];
 int alias_count = 0;
 
 char* getAlias(char* key) {
-	int i;
-	for (i = 0; i < alias_count; ++i) {
-		if (strcmp(key, alias_keys[i]) == 0)
-			return alias_values[i];
-	}
-	return key;
+  int i;
+  for (i = 0; i < alias_count; ++i) {
+    if (strcmp(key, alias_keys[i]) == 0)
+      return alias_values[i];
+  }
+  return key;
 }
 
 void mapAlias(char* name, char* toWord) {
   if (checkAliasExists(name)) {
-    fprintf(stderr, "Alias: %s Already Exists!\n", name);
     return;
   }
-  fprintf(stderr, "Alias: %s key\n", name);
-  fprintf(stderr, "Alias: %s value\n", toWord);
   alias_keys[alias_count] = strdup(name);
   alias_values[alias_count] = strdup(toWord);
   ++alias_count;
@@ -77,7 +74,6 @@ void unmapAlias(char* name) {
     }
   }
   deleteEntry(target_index);
-  fprintf(stderr, "Successfully Unmapped Alias: %s\n", name);
 }
 
 void printAliasTable() {
