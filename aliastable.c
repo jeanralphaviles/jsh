@@ -16,7 +16,7 @@
 
 char* alias_keys[MAX_LENGTH];
 char* alias_values[MAX_LENGTH];
-static int alias_count = 0;
+int alias_count = 0;
 
 char* getAlias(char* key) {
 	int i;
@@ -32,8 +32,10 @@ void mapAlias(char* name, char* toWord) {
     fprintf(stderr, "Alias: %s Already Exists!\n", name);
     return;
   }
-  alias_keys[alias_count] = name;
-  alias_values[alias_count] = toWord;
+  fprintf(stderr, "Alias: %s key\n", name);
+  fprintf(stderr, "Alias: %s value\n", toWord);
+  alias_keys[alias_count] = strdup(name);
+  alias_values[alias_count] = strdup(toWord);
   ++alias_count;
 }
 
@@ -48,6 +50,8 @@ int checkAliasExists(char* name) {
 
 void deleteEntry(int index) {
   int i;
+  char* dkey = alias_keys[index];
+  char* dvalue = alias_values[index];
   for (i = index; i < alias_count; ++i) {
     // Shift every entry alias to the left (inefficient!) :/
     // Thus overwriting the deleted entry.
@@ -55,8 +59,8 @@ void deleteEntry(int index) {
     alias_values[i] = alias_values[i + 1];
   }
   // Dealloc the last entry.
-  free(alias_keys[alias_count - 1]);
-  free(alias_values[alias_count - 1]);
+  free(dkey);
+  free(dvalue);
   --alias_count;
 }
 

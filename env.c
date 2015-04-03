@@ -93,5 +93,6 @@ char* expandVariables(char* word) {
     }
   }
   free(word);
+  copy[copyPtr] = '\0';
   return copy;
 }
