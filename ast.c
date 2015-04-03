@@ -1,15 +1,16 @@
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include "aliastable.h"
 #include "ast.h"
 #include "builtins.h"
 #include "defines.h"
 #include "queue.h"
 #include "utils.h"
-#include "aliastable.h"
 
 struct AstRoot* createAstRoot() {
   struct AstRoot* ast_root = (struct AstRoot*)malloc(sizeof(struct AstRoot));
@@ -24,57 +25,50 @@ struct AstPipeSequence* createAstPipeSequence() {
   struct AstPipeSequence* ast_pipe_sequence = (struct AstPipeSequence*)malloc(sizeof(struct AstPipeSequence));
 
   ast_pipe_sequence->commands = createQueue();
+  ast_pipe_sequence->io_in = NULL;
+  ast_pipe_sequence->io_out = NULL;
+  ast_pipe_sequence->io_err = NULL;
+  ast_pipe_sequence->err2out = FALSE;
   return ast_pipe_sequence;
 }
 
-struct AstSingleCommand* createAstSingleCommand(char* cmd_name, char* io_in, char* io_out) {
+struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
   fprintf(stderr, "Command Name coming in: %s\n", cmd_name);
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
   ast_single_command->args = createQueue();
   if(checkAliasExists(cmd_name)) {
-	  char* alias = malloc(strlen(getAlias(cmd_name) + 1));
-	  strcpy(alias, getAlias(cmd_name));
-	  char* token = strtok(alias, " ");
-	  int i = 0;
-	  while(token != NULL) {
-		  if (i == 0) {
-			  free(cmd_name);
-			  cmd_name = token;
-			  enqueue(ast_single_command->args, cmd_name);
-		  }
-		  else {
-			  enqueue(ast_single_command->args, token);
-		  }
-	      token = strtok(NULL, " ");
-		  ++i;
-	  }
+    char* alias = malloc(strlen(getAlias(cmd_name) + 1));
+    strcpy(alias, getAlias(cmd_name));
+    char* token = strtok(alias, " ");
+    int i = 0;
+    while(token != NULL) {
+      if (i == 0) {
+        cmd_name = token;
+        enqueue(ast_single_command->args, cmd_name);
+      } else {
+        enqueue(ast_single_command->args, token);
+      }
+      token = strtok(NULL, " ");
+      ++i;
+    }
+  } else {
+    enqueue(ast_single_command->args, cmd_name);
   }
-  else
-	  enqueue(ast_single_command->args, cmd_name);
-
   ast_single_command->cmd_name = (char*)malloc(strlen(cmd_name) + 1);
   strcpy(ast_single_command->cmd_name, cmd_name);
-  ast_single_command->io_in = io_in;
-  ast_single_command->io_out = io_out;
   return ast_single_command;
 }
 
 // Member Functions
 // --AstSingleCommand--
-void setIoIn(struct AstSingleCommand* ast, char* in) {
-  ast->io_in = strdup(in);
-}
-
-void setIoOut(struct AstSingleCommand* ast, char* out) {
-  ast->io_out = strdup(out);
-}
-
-void addArgs(struct AstSingleCommand* ast, char* args) {
+void addArgs(struct AstSingleCommand* ast, char* arg) {
   if (ast->args == NULL) {
     ast->args = createQueue();
   }
-  enqueue(ast->args, args);
+  char* temp = malloc(strlen(arg) + 1);
+  strcpy(temp, arg);
+  enqueue(ast->args, temp);
 }
 
 // --AstPipeSequence--
@@ -83,6 +77,27 @@ void addCommand(struct AstPipeSequence* pipe_sequence, struct AstSingleCommand* 
     pipe_sequence->commands = createQueue();
   }
   enqueue(pipe_sequence->commands, command);
+}
+
+void setIoIn(struct AstPipeSequence* pipe_sequence, char* in) {
+  pipe_sequence->io_in = (char*)malloc(strlen(in) + 1);
+  strcpy(pipe_sequence->io_in, in);
+}
+
+void setIoOut(struct AstPipeSequence* pipe_sequence, char* out) {
+  pipe_sequence->io_out = (char*)malloc(strlen(out) + 1);
+  strcpy(pipe_sequence->io_out, out);
+}
+
+void setIoErr(struct AstPipeSequence* pipe_sequence, char* out) {
+  if (out == NULL) {
+    pipe_sequence->io_err = NULL;
+    pipe_sequence->err2out = TRUE;
+  } else {
+    pipe_sequence->io_err = (char*)malloc(strlen(out) + 1);
+    strcpy(pipe_sequence->io_err, out);
+    pipe_sequence->err2out = FALSE;
+  }
 }
 
 // --AstRoot--
@@ -129,15 +144,14 @@ int executeAstRoot(struct AstRoot* root) {
         dequeue(sequence_separators);
         if ((sequence_separator == DAND && status != SUCCESS) ||
             (sequence_separator == DPIPE && status == SUCCESS)) {
-          if (async == FALSE) { // Don't want to return if we're the child
-            return ERR_SEQUENCE;
-          } else {
+          if (async == TRUE) { // Don't want to return if we're the child
             exit(EXIT_FAILURE);
           }
+          return ERR_SEQUENCE;
         }
       }
     }
-    if (async) { // Don't want to return if we're the child
+    if (async == TRUE) { // Don't want to return if we're the child
       exit(EXIT_SUCCESS);
     }
     return status;
@@ -153,6 +167,44 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     int lastPipe = -1;
     int i;
     pid_t* pids = (pid_t*)malloc(sizeof(pid_t)*size(commands));
+
+    // File IO
+    int old_stdin = dup(STDIN_FILENO);
+    int old_stdout = dup(STDOUT_FILENO);
+    int old_stderr = dup(STDERR_FILENO);
+    char* io_in = pipe_sequence->io_in;
+    if (io_in != NULL) {
+      if (freopen(io_in, "r", stdin) == NULL) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_IN\n", io_in);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      }
+    }
+    char* io_out = pipe_sequence->io_out;
+    if (io_out != NULL) {
+      if (freopen(io_out, "w", stdout) == NULL) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_OUT\n", io_out);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      }
+    }
+    char* io_err = pipe_sequence->io_err;
+    if (io_err != NULL) {
+      int fd;
+      if ((fd = open(io_err, O_CREAT|O_TRUNC|O_WRONLY, 0777)) == -1) {
+        char* oldColor = setTermColor(KRED);
+        fprintf(stderr, "Cannot open %s as File IO_ERR\n", io_err);
+        setTermColor(oldColor);
+        return ERR_PERMISSION;
+      } else {
+        dup2(fd, STDERR_FILENO);
+      }
+    } else if (pipe_sequence->err2out) {
+      dup2(STDOUT_FILENO, STDERR_FILENO);
+    }
+
     for (i = 0; size(commands) > 0; ++i) {
       // Get next command
       struct AstSingleCommand* command = (struct AstSingleCommand*)front(commands);
@@ -214,11 +266,27 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
     bool failed = FALSE;
     while (i--) {
       int status;
-      if (wait(&status) == (EXIT_FAILURE & 0377)) { // See manpage exit(3)
+      if (wait(&status) == -1 || status != SUCCESS){
         failed = TRUE;
       }
     }
     free(pids);
+    // Close Files used for IO and reopen streams
+    if (io_in != NULL) {
+      fflush(stdin);
+      dup2(old_stdin, STDIN_FILENO);
+      free(io_in);
+    }
+    if (io_out != NULL) {
+      fflush(stdout);
+      dup2(old_stdout, STDOUT_FILENO);
+      free(io_out);
+    }
+    if (io_err != NULL || pipe_sequence->err2out) {
+      fflush(stderr);
+      dup2(old_stderr, STDERR_FILENO);
+      free(io_err);
+    }
     return failed == TRUE ? ERROR : SUCCESS;
   }
 }
@@ -273,7 +341,7 @@ char** getArgs(struct AstSingleCommand* command) {
   int i;
   char** argv = (char**) malloc(sizeof(char**) * (size(command->args) + 1));
   for (i = 0; size(command->args) > 0; ++i) {
-    argv[i] = (char*) front(command->args);
+    argv[i] = (char*)front(command->args);
     dequeue(command->args);
   }
   argv[i] = NULL;
