@@ -143,7 +143,12 @@ char* tildeExpand(char* path_name) {
     homeDir = getenv("HOME");
   } else {
     // Else, get username's $HOME
-    homeDir = getpwnam(username)->pw_dir;
+    struct passwd* userInfo = getpwnam(username);
+    if (userInfo == NULL) {
+      // System, doesn't recognize user, don't expand
+      return path_name;
+    }
+    homeDir = userInfo->pw_dir;
   }
 
   // Now replace ~ with homeDir
