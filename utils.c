@@ -130,7 +130,7 @@ char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {
         strcat(merged, tokens[j++]);
         strcat(merged, token_sep);
       }
-      merged[totalTokenLength] = '\0';
+      merged[totalTokenLength + (j - 1)] = '\0';
       // Add merged to the rest of the glob
       glob(merged, GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
       free(tokens);
