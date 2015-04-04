@@ -6,6 +6,7 @@
  */
 
 #include <glob.h>
+#include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -103,21 +104,56 @@ char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {
   int i = 1;
   while (argv[i]) {
     if (token_sep == NULL) {
-      glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE, NULL, &globbuf);
+      argv[i] = tildeExpand(argv[i]);
+      glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
     } else {
       // Split each argument based on given token
       char* token = strtok(argv[i++], token_sep);
       while (token) {
-        printf("token %s\n", token);
-        glob(token, GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE | GLOB_ONLYDIR, NULL, &globbuf);
+        token = tildeExpand(token);
+        glob(token, GLOB_NOCHECK | GLOB_APPEND | GLOB_ONLYDIR, NULL, &globbuf);
         token = strtok(NULL, token_sep);
       }
     }
   }
-  i = 0;
-  while (globbuf.gl_pathv[i]) {
-    printf("wild carded %s\n", globbuf.gl_pathv[i++]);
-  }
   return globbuf.gl_pathv;
+}
+
+// ~ or ~/ expands to current user's $HOME variable
+// ~username or ~username/ expands to username's $HOME
+char* tildeExpand(char* path_name) {
+  // Paths must start with ~ to be tilde expanded
+  if (path_name == NULL || path_name[0] != '~') {
+    return path_name;
+  }
+
+  char* firstSlash; /* Pointer to first slash in path_name */
+  if ((firstSlash = strchr(path_name, '/')) == NULL) {
+    // Did not find a slash, set firstSlash to end of string
+    firstSlash = path_name + strlen(path_name) + 1;
+  }
+  int usernameLength = firstSlash - path_name - 1;
+  char* username = (char*)malloc(usernameLength + 1);
+  username = strncpy(username, path_name + 1, usernameLength);
+  username[usernameLength] = '\0';
+
+  char* homeDir;
+  if (strlen(username) == 0) {
+    // If username was just ~, get current user's $HOME
+    homeDir = getenv("HOME");
+  } else {
+    // Else, get username's $HOME
+    homeDir = getpwnam(username)->pw_dir;
+  }
+
+  // Now replace ~ with homeDir
+  char* restOfString = firstSlash; /* String after tilde expansion */
+  int expandedStringSize = strlen(homeDir) + strlen(restOfString);
+  char* expandedString = (char*)malloc(expandedStringSize +  1);
+  memset(expandedString, 0, expandedStringSize + 1);
+  strcat(expandedString, homeDir);
+  strcat(expandedString, restOfString);
+
+  return expandedString;
 }
 
