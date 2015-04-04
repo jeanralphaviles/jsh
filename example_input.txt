@@ -1,1 +1,24 @@
-echo "emacs\nsucks" | grep -i emacs | xargs -L 1 which
+setenv PATH .:/usr/bin:/usr/local/bin:~ghi/bin:~/bin
+setenv ARGPATH .:~ghi/bin:~/bin
+cd ./bin
+cd ~/bin
+cd ~sjc/bin
+cd ../misc/old
+cd src/proj/first
+ls project1
+ls "~project1"
+wc -l f1 f2 f3 | sort | less
+command1 arg1 arg2 | command2 | command3 < file_in > file_out 2>&1 &
+alias lo logout
+alias rot13 "tr a-zA-Z n-za-mN-ZA-M"
+rot13 < foo > bar
+ls *.c foo.?
+alias lo jj
+alias jj "ls -al"
+lo
+setenv this .
+setenv lsthis "jj ${this}"
+${lsthis}
+bye
+setenv LIB ~/bin
+nm ${LIB}/libxc.all
