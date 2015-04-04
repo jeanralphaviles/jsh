@@ -5,6 +5,7 @@
  *      Author: joe
  */
 
+#include <glob.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +18,9 @@ const char* currTermColor = KNRM;
 
 void fixPath(char* path) {
   // If the path is an Absolute Path, no fixing to do.
-  if (isAbsolutePath(path)) return;
+  if (isAbsolutePath(path)) {
+    return;
+  }
 
   char* wd = (char*)malloc(MAX_LENGTH);
 
@@ -29,8 +32,11 @@ void fixPath(char* path) {
 }
 
 int isAbsolutePath(char* path) {
-  if (path[0] == '/') return TRUE;
-  else return FALSE;
+  if (path[0] == '/') {
+    return TRUE;
+  } else {
+    return FALSE;
+  }
 }
 
 const char* setTermColor(FILE* stream, const char* newColor) {
@@ -41,51 +47,63 @@ const char* setTermColor(FILE* stream, const char* newColor) {
 }
 
 char* resolveEscapeSequences(char* line) {
-	int length = strlen(line);
-	char* copy = (char*) malloc(length + 1);
-	int i;
-	int foundEscape = FALSE;
-	int newLength = 0;
-	for (i = 0; i < length; ++i) {
-		char cur = line[i];
-		if (foundEscape) {
-			if (isEscapeCharacter(cur)) {
-				copy[newLength] = cur;
-				newLength++;
-			}
-			else {
-				fprintf(stderr, "Unrecognized escape sequence \\%d\n", cur);
-			}
-			foundEscape = FALSE;
-			continue;
-		}
+  int length = strlen(line);
+  char* copy = (char*) malloc(length + 1);
+  int i;
+  int foundEscape = FALSE;
+  int newLength = 0;
+  for (i = 0; i < length; ++i) {
+    char cur = line[i];
+    if (foundEscape) {
+      if (isEscapeCharacter(cur)) {
+        copy[newLength] = cur;
+        newLength++;
+      } else {
+        fprintf(stderr, "Unrecognized escape sequence \\%d\n", cur);
+      }
+      foundEscape = FALSE;
+      continue;
+    }
 
-		// Found an escape sequence
-		if (cur == '\\') {
-			foundEscape = TRUE;
-		}
-		else {
-			copy[newLength] = cur;
-			newLength++;
-		}
-	}
-	copy[newLength] = '\0';
-	free(line);
-	return copy;
+    // Found an escape sequence
+    if (cur == '\\') {
+      foundEscape = TRUE;
+    } else {
+      copy[newLength] = cur;
+      newLength++;
+    }
+  }
+  copy[newLength] = '\0';
+  free(line);
+  return copy;
 }
 
 int isMetaCharacter(char character) {
-	char metaCharacters[5] = { '&', '|', '"', '<', '>' };
-	int i;
-	for (i = 0; i < 5; ++i) {
-		if (character == metaCharacters[i])
-			return TRUE;
-	}
-	return FALSE;
+  char metaCharacters[5] = { '&', '|', '"', '<', '>' };
+  int i;
+  for (i = 0; i < 5; ++i) {
+    if (character == metaCharacters[i]) {
+      return TRUE;
+    }
+  }
+  return FALSE;
 }
 
 int isEscapeCharacter(char character) {
-	char backslashChar = '\\';
-	if (isMetaCharacter(character)) return TRUE;
-	return character == backslashChar;
+  char backslashChar = '\\';
+  if (isMetaCharacter(character)) {
+    return TRUE;
+  }
+  return character == backslashChar;
 }
+
+char** wildcardMatch(char* cmd_name, char** argv) {
+  glob_t globbuf;
+  glob(cmd_name, GLOB_NOCHECK | GLOB_TILDE, NULL, &globbuf);
+  int i = 1;
+  while (argv[i]) {
+    glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE, NULL, &globbuf);
+  }
+  return globbuf.gl_pathv;
+}
+
