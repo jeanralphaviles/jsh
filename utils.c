@@ -97,12 +97,26 @@ int isEscapeCharacter(char character) {
   return character == backslashChar;
 }
 
-char** wildcardMatch(char* cmd_name, char** argv) {
+char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {
   glob_t globbuf;
   glob(cmd_name, GLOB_NOCHECK | GLOB_TILDE, NULL, &globbuf);
   int i = 1;
   while (argv[i]) {
-    glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE, NULL, &globbuf);
+    if (token_sep == NULL) {
+      glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE, NULL, &globbuf);
+    } else {
+      // Split each argument based on given token
+      char* token = strtok(argv[i++], token_sep);
+      while (token) {
+        printf("token %s\n", token);
+        glob(token, GLOB_NOCHECK | GLOB_APPEND | GLOB_TILDE | GLOB_ONLYDIR, NULL, &globbuf);
+        token = strtok(NULL, token_sep);
+      }
+    }
+  }
+  i = 0;
+  while (globbuf.gl_pathv[i]) {
+    printf("wild carded %s\n", globbuf.gl_pathv[i++]);
   }
   return globbuf.gl_pathv;
 }

@@ -13,6 +13,6 @@ int isAbsolutePath(char* path);
 char* resolveEscapeSequences(char* line);
 int isMetaCharacter(char character);
 int isEscapeCharacter(char character);
-char** wildcardMatch(char*, char**);
+char** wildcardMatch(char*, char**, char*);
 
 #endif /* UTILS_H_ */

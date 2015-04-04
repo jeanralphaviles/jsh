@@ -217,7 +217,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       }
       if (isBuiltinCommand(cmd_name)) {
         int argc = size(command->args);
-        char** argv = wildcardMatch(cmd_name, getArgs(command));
+        char** argv = wildcardMatch(cmd_name, getArgs(command), ":");
         executeBuiltinCommand(cmd_name, argc, argv);
         int j = 0;
         while (argv[j] != NULL) {
@@ -300,7 +300,7 @@ void executeCommand(struct AstSingleCommand* command) {
   // i.e. if ths command was /bin/ls
   if (isAbsolutePath(cmd_name)) {
     if (fileExists(cmd_name)) {
-      argv = wildcardMatch(cmd_name, argv);
+      argv = wildcardMatch(cmd_name, argv, NULL);
       execv(cmd_name, argv); // Will not return, unless it fails
     }
     int i = 0;
@@ -320,7 +320,7 @@ void executeCommand(struct AstSingleCommand* command) {
     strcat(filename, "/");
     strcat(filename, cmd_name);
     if (fileExists(filename)) {
-      argv = wildcardMatch(filename, argv);
+      argv = wildcardMatch(filename, argv, NULL);
       execv(filename, argv); // Will not return, unless it fails
       perror("wtf");
       exit(EXIT_FAILURE);
