@@ -107,13 +107,33 @@ char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {
       argv[i] = tildeExpand(argv[i]);
       glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
     } else {
-      // Split each argument based on given token
+      // Split each argument based on given token, only tilde expand
+      char** tokens = (char**)malloc(sizeof(char*)*100);
       char* token = strtok(argv[i++], token_sep);
+      int j = 0;
       while (token) {
         token = tildeExpand(token);
-        glob(token, GLOB_NOCHECK | GLOB_APPEND | GLOB_ONLYDIR, NULL, &globbuf);
+        tokens[j++] = token;
         token = strtok(NULL, token_sep);
       }
+      tokens[j] = NULL;
+      // Merge all tokens into one string
+      int totalTokenLength = 0;
+      j = 0;
+      while (tokens[j]) {
+        totalTokenLength += strlen(tokens[j++]);
+      }
+      char* merged = (char*)malloc(totalTokenLength + 1 + (j - 1)); /* j-1 is for separators */
+      memset(merged, 0, totalTokenLength + 1);
+      j = 0;
+      while (tokens[j]) {
+        strcat(merged, tokens[j++]);
+        strcat(merged, token_sep);
+      }
+      merged[totalTokenLength] = '\0';
+      // Add merged to the rest of the glob
+      glob(merged, GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
+      free(tokens);
     }
   }
   return globbuf.gl_pathv;
