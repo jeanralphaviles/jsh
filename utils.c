@@ -91,11 +91,17 @@ int isMetaCharacter(char character) {
 }
 
 int isEscapeCharacter(char character) {
-  char backslashChar = '\\';
+  char escapeCharacters[3] = {'\\', ' ', '\''};
   if (isMetaCharacter(character)) {
     return TRUE;
   }
-  return character == backslashChar;
+  int i;
+  for (i = 0; i < 3; ++i) {
+	  if (character == escapeCharacters[i]) {
+		  return TRUE;
+	  }
+  }
+  return FALSE;
 }
 
 char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {

@@ -22,7 +22,7 @@ EOF                               { exit(EXIT_SUCCESS); }
                                     return WORD; }
 \'.*\'                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0';
                                     return WORD; }                         
-([a-zA-Z0-9\-\*\.\/\$\{\}_~?:]*(\\[\\\&|\<\>\"\'])*)+  { yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
+([a-zA-Z0-9\-\*\.\/\$\{\}_~?:]*(\\[\\\&|\<\>\"\' ])*)+  { yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
 [ \t\r]+                          { ; } /* Ignore Whitespace */
 .                                 { ; } /* No Match */
 %%
