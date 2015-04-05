@@ -56,12 +56,12 @@ char* resolveEscapeSequences(char* line) {
   for (i = 0; i < length; ++i) {
     char cur = line[i];
     if (foundEscape) {
-      if (isEscapeCharacter(cur)) {
+      //if (isEscapeCharacter(cur)) {
         copy[newLength] = cur;
         newLength++;
-      } else {
+      /*} else {
         fprintf(stderr, "Unrecognized escape sequence \\%d\n", cur);
-      }
+      }*/
       foundEscape = FALSE;
       continue;
     }
