@@ -11,7 +11,6 @@ extern int linenum;
 %%
 EOF                               { exit(EXIT_SUCCESS); }
 \n+                               { ++linenum; return NEWLINE; }
-"\\ "							  { return WORD; }
 "&&"                              { return AND_IF; }
 "||"                              { return OR_IF; }
 2>&1                              { return IO_COMBINE; }
