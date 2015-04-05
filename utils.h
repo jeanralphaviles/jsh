@@ -13,5 +13,7 @@ int isAbsolutePath(char* path);
 char* resolveEscapeSequences(char* line);
 int isMetaCharacter(char character);
 int isEscapeCharacter(char character);
+char** wildcardMatch(char*, char**, char*);
+char* tildeExpand(char*);
 
 #endif /* UTILS_H_ */
