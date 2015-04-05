@@ -1,1 +1,1 @@
-echo "emacs\nsucks" | grep -i emacs | xargs -L 1 which
+echo "emacs sucks" | grep -io emacs | xargs -L 1 which
