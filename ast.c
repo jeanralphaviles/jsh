@@ -38,6 +38,7 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
   struct AstSingleCommand* ast_single_command = (struct AstSingleCommand*)malloc(sizeof(struct AstSingleCommand));
 
   ast_single_command->args = createQueue();
+  ast_single_command->inString = createQueue();
   if(checkAliasExists(cmd_name)) {
     char* alias = strdup(getAlias(cmd_name));
     char* token = strtok(alias, " ");
@@ -46,14 +47,17 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
       if (i == 0) {
         cmd_name = token;
         enqueue(ast_single_command->args, cmd_name);
+        enqueue(ast_single_command->inString, FALSE);
       } else {
         enqueue(ast_single_command->args, token);
+        enqueue(ast_single_command->inString, FALSE);
       }
       token = strtok(NULL, " ");
       ++i;
     }
   } else {
     enqueue(ast_single_command->args, cmd_name);
+    enqueue(ast_single_command->inString, FALSE);
   }
   ast_single_command->cmd_name = (char*)malloc(strlen(cmd_name) + 1);
   strcpy(ast_single_command->cmd_name, cmd_name);
@@ -62,13 +66,15 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
 
 // Member Functions
 // --AstSingleCommand--
-void addArgs(struct AstSingleCommand* ast, char* arg) {
+void addArgs(struct AstSingleCommand* ast, char* arg, bool inString) {
   if (ast->args == NULL) {
     ast->args = createQueue();
+    ast->inString = createQueue();
   }
   char* temp = malloc(strlen(arg) + 1);
   strcpy(temp, arg);
   enqueue(ast->args, temp);
+  enqueue(ast->inString, (void*)(unsigned long)inString); // LOL
 }
 
 // --AstPipeSequence--
@@ -217,7 +223,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       }
       if (isBuiltinCommand(cmd_name)) {
         int argc = size(command->args);
-        char** argv = wildcardMatch(cmd_name, getArgs(command), ":");
+        char** argv = wildcardMatch(cmd_name, getArgs(command), getInStringArr(command), ":");
         executeBuiltinCommand(cmd_name, argc, argv);
         int j = 0;
         while (argv[j] != NULL) {
@@ -297,10 +303,11 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 void executeCommand(struct AstSingleCommand* command) {
   char* cmd_name = command->cmd_name;
   char** argv = getArgs(command);
+  bool* inStringArr = getInStringArr(command);
   // i.e. if ths command was /bin/ls
   if (isAbsolutePath(cmd_name)) {
     if (fileExists(cmd_name)) {
-      argv = wildcardMatch(cmd_name, argv, NULL);
+      argv = wildcardMatch(cmd_name, argv, inStringArr, NULL);
       execv(cmd_name, argv); // Will not return, unless it fails
     }
     int i = 0;
@@ -320,7 +327,7 @@ void executeCommand(struct AstSingleCommand* command) {
     strcat(filename, "/");
     strcat(filename, cmd_name);
     if (fileExists(filename)) {
-      argv = wildcardMatch(filename, argv, NULL);
+      argv = wildcardMatch(filename, argv, inStringArr, NULL);
       execv(filename, argv); // Will not return, unless it fails
       perror("wtf");
       exit(EXIT_FAILURE);
@@ -352,3 +359,15 @@ char** getArgs(struct AstSingleCommand* command) {
   argv[i] = NULL;
   return argv;
 }
+
+bool* getInStringArr(struct AstSingleCommand* command) {
+  int i;
+  bool* inStringArr = (bool*) malloc(sizeof(bool) * (size(command->inString) + 1));
+  for (i = 0; size(command->inString) > 0; ++i) {
+    inStringArr[i] = (bool)(unsigned long)front(command->inString);
+    dequeue(command->inString);
+  }
+  inStringArr[i] = -1;
+  return inStringArr;
+}
+

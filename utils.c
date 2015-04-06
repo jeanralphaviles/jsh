@@ -97,19 +97,29 @@ int isEscapeCharacter(char character) {
   }
   int i;
   for (i = 0; i < 3; ++i) {
-	  if (character == escapeCharacters[i]) {
-		  return TRUE;
-	  }
+    if (character == escapeCharacters[i]) {
+      return TRUE;
+    }
   }
   return FALSE;
 }
 
-char** wildcardMatch(char* cmd_name, char** argv, char* token_sep) {
+char** wildcardMatch(char* cmd_name, char** argv, bool* inStringArr, char* token_sep) {
   glob_t globbuf;
   glob(cmd_name, GLOB_NOCHECK | GLOB_TILDE, NULL, &globbuf);
   int i = 1;
   while (argv[i]) {
     if (token_sep == NULL) {
+      if (inStringArr[i] == TRUE) {
+        // Wrap argv[i] in quotes to meet requirement that wildcard and tilde
+        // expansion shouldn't happen inside of quoted strings. This is a hack.
+        char* temp = (char*)malloc(strlen(argv[i]) + 3); // 3 for 2 quotes + \0
+        temp[0] = '\0';
+        strcat(temp, "\""); // Leading Quote
+        strcat(temp, argv[i]); // Argument
+        strcat(temp, "\""); // Trailing Quote
+        argv[i] = temp; // Set argv[i] to new string, note the memory leak
+      }
       argv[i] = tildeExpand(argv[i]);
       glob(argv[i++], GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
     } else {

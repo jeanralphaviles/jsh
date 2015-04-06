@@ -8,6 +8,8 @@
 #include "utils.h"
 
 int linenum = 1;
+bool inString = FALSE;
+
 struct AstRoot* astRoot; // Contains parsed command
 
 void yyerror(const char *str) {
@@ -68,7 +70,7 @@ sequence_separator : AND_IF {$$ = AND_IF;}
                    | OR_IF {$$ = OR_IF;}
                    ;
 single_command     : cmd_name {$$ = createAstSingleCommand($1);}
-                   | single_command WORD {addArgs($1, $2); $$ = $1;}
+                   | single_command WORD {addArgs($1, $2, inString); $$ = $1; inString = FALSE;}
                    ;
 cmd_name           : WORD {$$ = $1;}
                    ;

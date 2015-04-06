@@ -22,6 +22,7 @@ struct AstPipeSequence {
 struct AstSingleCommand {
   char* cmd_name;
   struct queue* args;
+  struct queue* inString;
 };
 
 // All create functions assume owenership of arguments
@@ -31,7 +32,7 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name);
 
 // Member Functions
 // --AstSingleCommand--
-void addArgs(struct AstSingleCommand*, char*);
+void addArgs(struct AstSingleCommand*, char*, bool);
 // --AstPipeSequence--
 void addCommand(struct AstPipeSequence*, struct AstSingleCommand*);
 void setIoIn(struct AstPipeSequence*, char*);
@@ -49,5 +50,6 @@ void executeCommand(struct AstSingleCommand*);
 // Utility
 bool fileExists(char*);
 char** getArgs(struct AstSingleCommand*);
+bool* getInStringArr(struct AstSingleCommand*);
 
 #endif
