@@ -13,6 +13,7 @@
 #include <unistd.h>
 
 #include "defines.h"
+#include "queue.h"
 #include "utils.h"
 
 const char* currTermColor = KNRM;
@@ -107,8 +108,10 @@ int isEscapeCharacter(char character) {
 char** wildcardMatch(char* cmd_name, char** argv, bool* inStringArr, char* token_sep) {
   glob_t globbuf;
   glob(cmd_name, GLOB_NOCHECK | GLOB_TILDE, NULL, &globbuf);
+  struct queue* inStringQueue = createQueue(); // For a hack with wildcards in Strings
   int i = 1;
   while (argv[i]) {
+    enqueue(inStringQueue, (void*)(unsigned long)inStringArr[i]);
     if (token_sep == NULL) {
       if (inStringArr[i] == TRUE) {
         // Wrap argv[i] in quotes to meet requirement that wildcard and tilde
@@ -151,6 +154,20 @@ char** wildcardMatch(char* cmd_name, char** argv, bool* inStringArr, char* token
       glob(merged, GLOB_NOCHECK | GLOB_APPEND, NULL, &globbuf);
       free(tokens);
     }
+  }
+  // Unquote strings that need to be unquoted, you don't even want to know this hack
+  i = 1;
+  while (globbuf.gl_pathv[i]) {
+    if ((bool)(unsigned long)front(inStringQueue) == TRUE) {
+      int arg_len = strlen(globbuf.gl_pathv[i]);
+      char* temp = (char*)malloc(arg_len + 1);
+      strcpy(temp, globbuf.gl_pathv[i]);
+      strncpy(globbuf.gl_pathv[i], temp + 1, arg_len - 2);
+      globbuf.gl_pathv[i][arg_len - 2] = '\0';
+      free(temp);
+    }
+    dequeue(inStringQueue);
+    ++i;
   }
   return globbuf.gl_pathv;
 }
