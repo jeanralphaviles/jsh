@@ -221,7 +221,7 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
       if (size(commands) > 0) { // Don't need to pipe if we're the last command
         pipe(currPipe);
       }
-      if (isBuiltinCommand(cmd_name)) {
+      if (isBuiltinNormalCommand(command)) {
         int argc = size(command->args);
         char** argv = wildcardMatch(cmd_name, getArgs(command), getInStringArr(command), ":");
         executeBuiltinCommand(cmd_name, argc, argv);
@@ -302,10 +302,22 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
 
 void executeCommand(struct AstSingleCommand* command) {
   char* cmd_name = command->cmd_name;
+  bool builtinPipeCommand = isBuiltinPipeCommand(command); // Reasons
+  int argc = size(command->args);
   char** argv = getArgs(command);
   bool* inStringArr = getInStringArr(command);
-  // i.e. if ths command was /bin/ls
-  if (isAbsolutePath(cmd_name)) {
+  if (builtinPipeCommand) {
+    argv = wildcardMatch(cmd_name, argv, inStringArr, ":");
+    int status = executeBuiltinCommand(cmd_name, argc, argv);
+    int i = 0;
+    while (argv[i] != NULL) {
+      free(argv[i++]);
+    }
+    free(argv);
+    free(cmd_name);
+    exit(status == SUCCESS ? EXIT_SUCCESS : EXIT_FAILURE);
+  } else if (isAbsolutePath(cmd_name)) {
+    // i.e. if ths command was /bin/ls
     if (fileExists(cmd_name)) {
       argv = wildcardMatch(cmd_name, argv, inStringArr, NULL);
       execv(cmd_name, argv); // Will not return, unless it fails

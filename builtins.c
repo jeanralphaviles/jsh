@@ -15,7 +15,8 @@
 #include "env.h"
 #include "utils.h"
 
-void executeBuiltinCommand(char* cmd, int argc, char** argv) {
+int executeBuiltinCommand(char* cmd, int argc, char** argv) {
+  int status = SUCCESS;
   if (strcmp(cmd, "cd") == 0) {
     char* dest = (char*)malloc(MAX_LENGTH);
     if (argc == 2) {
@@ -25,6 +26,7 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
       const char* oldColor = setTermColor(stderr, KRED);
       fprintf(stderr, "cd: too many arguments\n");
       setTermColor(stderr, oldColor);
+      status = ERROR;
     } else {
       sprintf(dest, "%s", getenv("HOME"));
     }
@@ -40,6 +42,7 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
       const char* oldColor = setTermColor(stderr, KRED);
       fprintf(stderr, "alias: need 3 arguments, got %d\n", argc);
       setTermColor(stderr, oldColor);
+      status = ERROR;
     }
   } else if (strcmp(cmd, "unalias") == 0) {
     if (argc == 2) {
@@ -49,14 +52,16 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
       const char* oldColor = setTermColor(stderr, KRED);
       fprintf(stderr, "unalias: need 2 arguments, got %d\n", argc);
       setTermColor(stderr, oldColor);
+      status = ERROR;
     }
   } else if (strcmp(cmd, "printenv") == 0) {
     if (argc < 2) {
       printEnv();
     } else {
       const char* oldColor = setTermColor(stderr, KRED);
-      fprintf(stderr, "printenv: need 3 arguments, got %d\n", argc);
+      fprintf(stderr, "printenv: too many arguments");
       setTermColor(stderr, oldColor);
+      status = ERROR;
     }
   } else if (strcmp(cmd, "setenv") == 0) {
     if (argc == 3) {
@@ -67,6 +72,7 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
       const char* oldColor = setTermColor(stderr, KRED);
       fprintf(stderr, "setenv: need 3 arguments, got %d\n", argc);
       setTermColor(stderr, oldColor);
+      status = ERROR;
     }
   } else if (strcmp(cmd, "unsetenv") == 0) {
     if (argc == 2) {
@@ -76,19 +82,32 @@ void executeBuiltinCommand(char* cmd, int argc, char** argv) {
       const char* oldColor = setTermColor(stderr, KRED);
       fprintf(stderr, "unsetenv: need 2 arguments, got %d\n", argc);
       setTermColor(stderr, oldColor);
+      status = ERROR;
     }
   } else if (strcmp(cmd, "bye") == 0) {
     exit(EXIT_SUCCESS);
+  } else {
+    status = ERROR;
   }
+  return status;
 }
 
-int isBuiltinCommand(char* cmd) {
+bool isBuiltinNormalCommand(struct AstSingleCommand* command) {
+  char* cmd = command->cmd_name;
   if (strcmp(cmd, "cd") == 0) return TRUE;
-  else if (strcmp(cmd, "alias") == 0) return TRUE;
+  else if (strcmp(cmd, "alias") == 0 && size(command->args) > 1) return TRUE;
   else if (strcmp(cmd, "unalias") == 0) return TRUE;
-  else if (strcmp(cmd, "printenv") == 0) return TRUE;
+  else if (strcmp(cmd, "printenv") == 0 && size(command->args) > 1) return TRUE;
   else if (strcmp(cmd, "setenv") == 0) return TRUE;
   else if (strcmp(cmd, "unsetenv") == 0) return TRUE;
   else if (strcmp(cmd, "bye") == 0) return TRUE;
   return FALSE;
 }
+
+bool isBuiltinPipeCommand(struct AstSingleCommand* command) {
+  char* cmd = command->cmd_name;
+  if (strcmp(cmd, "alias") == 0 && size(command->args) == 1) return TRUE;
+  else if (strcmp(cmd, "printenv") == 0 && size(command->args) == 1) return TRUE;
+  return FALSE;
+}
+

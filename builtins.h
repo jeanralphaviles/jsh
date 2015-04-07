@@ -8,7 +8,10 @@
 #ifndef BUILTINS_H_
 #define BUILTINS_H_
 
-void executeBuiltinCommand(char* cmd, int argc, char** argv);
-int isBuiltinCommand(char* cmd);
+#include "ast.h"
+
+int executeBuiltinCommand(char* cmd, int argc, char** argv);
+bool isBuiltinNormalCommand(struct AstSingleCommand*);
+bool isBuiltinPipeCommand(struct AstSingleCommand*);
 
 #endif /* BUILTINS_H_ */
