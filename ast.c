@@ -6,7 +6,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include "aliastable.h"
 #include "ast.h"
 #include "builtins.h"
 #include "defines.h"
@@ -39,28 +38,13 @@ struct AstSingleCommand* createAstSingleCommand(char* cmd_name) {
 
   ast_single_command->args = createQueue();
   ast_single_command->inString = createQueue();
-  if(checkAliasExists(cmd_name)) {
-    char* alias = strdup(getAlias(cmd_name));
-    char* token = strtok(alias, " ");
-    int i = 0;
-    while(token != NULL) {
-      if (i == 0) {
-        cmd_name = token;
-        enqueue(ast_single_command->args, cmd_name);
-        enqueue(ast_single_command->inString, FALSE);
-      } else {
-        enqueue(ast_single_command->args, token);
-        enqueue(ast_single_command->inString, FALSE);
-      }
-      token = strtok(NULL, " ");
-      ++i;
-    }
-  } else {
-    enqueue(ast_single_command->args, cmd_name);
-    enqueue(ast_single_command->inString, FALSE);
-  }
+
+  enqueue(ast_single_command->args, cmd_name);
+  enqueue(ast_single_command->inString, FALSE);
+
   ast_single_command->cmd_name = (char*)malloc(strlen(cmd_name) + 1);
   strcpy(ast_single_command->cmd_name, cmd_name);
+
   return ast_single_command;
 }
 

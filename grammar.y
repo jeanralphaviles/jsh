@@ -13,12 +13,14 @@ bool inString = FALSE;
 struct AstRoot* astRoot; // Contains parsed command
 
 void yyerror(const char *str) {
-        fprintf(stderr,"line: %d error: %s\n", linenum, str);
+  fprintf(stderr,"line: %d error: %s\n", linenum, str);
 }
 
 int yywrap() {
-        return 1;
+  return 1;
 }
+
+int yylex();
 %}
 
 %union {

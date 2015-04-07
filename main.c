@@ -1,8 +1,10 @@
+#include "ast.h"
+
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "ast.h"
+#include "aliastable.h"
 #include "defines.h"
 #include "utils.h"
 
@@ -23,6 +25,7 @@ int main(int argc, char* argv[]) {
     if (!fgets(line, MAX_LENGTH, stdin)) {
       break;
     }
+    aliasSub(line);
 
     int buf = yy_scan_string(line);
     int returnVal = yyparse();

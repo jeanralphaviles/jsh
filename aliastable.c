@@ -36,11 +36,12 @@ void mapAlias(char* name, char* toWord) {
   ++alias_count;
 }
 
-int checkAliasExists(char* name) {
+bool checkAliasExists(char* name) {
   int i;
   for (i = 0; i < alias_count; ++i) {
-    if (strcmp(name, alias_keys[i]) == 0)
+    if (strcmp(name, alias_keys[i]) == 0) {
       return TRUE;
+    }
   }
   return FALSE;
 }
@@ -78,6 +79,64 @@ void unmapAlias(char* name) {
 
 void printAliasTable() {
   int i;
-  for (i = 0; i < alias_count; ++i)
+  for (i = 0; i < alias_count; ++i) {
     printf("%s='%s'\n", alias_keys[i], alias_values[i]);
+  }
+}
+
+void aliasSub(char* line) {
+  // Strip newline
+  line[strlen(line) - 1] = '\0';
+  while (containsAlias(line)) {
+    bool commandNext = TRUE;
+    char* substituted = (char*)malloc(MAX_LENGTH);
+    substituted[0] = '\0';
+    char* word = strtok(line, " ");
+    while (word) {
+      if (commandNext == TRUE && checkAliasExists(word) == TRUE) {
+        strcat(substituted, getAlias(word));
+        commandNext = FALSE;
+      } else {
+        strcat(substituted, word);
+        commandNext = isCommandSeparator(word);
+      }
+      strcat(substituted, " ");
+      word = strtok(NULL, " ");
+    }
+    strncpy(line, substituted, 1023);
+    line[MAX_LENGTH] = '\0';
+    free(substituted);
+  }
+  // Re-add newline
+  strcpy(line + strlen(line), "\n\0");
+}
+
+bool isCommandSeparator(char* word) {
+  if (strcmp(word, "&") == 0) return TRUE;
+  else if (strcmp(word, "&&") == 0) return TRUE;
+  else if (strcmp(word, "|") == 0) return TRUE;
+  else if (strcmp(word, "||") == 0) return TRUE;
+  else return FALSE;
+}
+
+bool containsAlias(char* line) {
+  char* savedLine = (char*)malloc(strlen(line) + 1);
+  strcpy(savedLine, line);
+  bool commandNext = TRUE;
+  char* word = strtok(line, " ");
+  while (word != NULL) {
+    if (commandNext == TRUE && checkAliasExists(word) == TRUE) {
+      strcpy(line, savedLine);
+      free(savedLine);
+      return TRUE;
+    } else if (isCommandSeparator(word)) {
+      commandNext = TRUE;
+    } else {
+      commandNext = FALSE;
+    }
+    word = strtok(NULL, " ");
+  }
+  strcpy(line, savedLine);
+  free(savedLine);
+  return FALSE;
 }

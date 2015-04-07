@@ -8,11 +8,16 @@
 #ifndef ALIASTABLE_H_
 #define ALIASTABLE_H_
 
+#include "defines.h"
+
 void mapAlias(char* name, char* toWord);
 void unmapAlias(char* name);
 void printAliasTable();
 char* getAlias(char* key);
-int checkAliasExists(char* name);
-int isInfiniteAlias(char* name);
+bool checkAliasExists(char* name);
+bool isInfiniteAlias(char* name);
+void aliasSub(char*);
+bool isCommandSeparator(char*);
+bool containsAlias(char*);
 
 #endif /* ALIASTABLE_H_ */
