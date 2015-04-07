@@ -5,12 +5,14 @@
  *      Author: joe
  */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "env.h"
 #include "defines.h"
+#include "env.h"
+#include "utils.h"
 
 extern char** environ;
 
@@ -44,7 +46,12 @@ void setEnv(const char* variable, const char* word) {
 }
 
 void unsetEnv(const char* variable) {
-  int val = unsetenv(variable);
+  unsetenv(variable);
+  if (errno == EINVAL) {
+    const char* oldColor = setTermColor(stderr, KRED);
+    fprintf(stderr, "unsetenv: failed environment variable %s not found \n", variable);
+    setTermColor(stderr, oldColor);
+  }
 }
 
 char* expandVariables(char* word) {

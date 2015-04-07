@@ -10,6 +10,7 @@
 
 void fixPath(char* path);
 int isAbsolutePath(char* path);
+const char* setTermColor(FILE*, const char*);
 char* resolveEscapeSequences(char* line);
 int isMetaCharacter(char character);
 int isEscapeCharacter(char character);
