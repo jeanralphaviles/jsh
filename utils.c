@@ -158,7 +158,8 @@ char** wildcardMatch(char* cmd_name, char** argv, bool* inStringArr, char* token
   // Unquote strings that need to be unquoted, you don't even want to know this hack
   i = 1;
   while (globbuf.gl_pathv[i]) {
-    if ((bool)(unsigned long)front(inStringQueue) == TRUE) {
+    if ((bool)(unsigned long)front(inStringQueue) == TRUE && 
+         globbuf.gl_pathv[i][0] == '"') {
       int arg_len = strlen(globbuf.gl_pathv[i]);
       char* temp = (char*)malloc(arg_len + 1);
       strcpy(temp, globbuf.gl_pathv[i]);
