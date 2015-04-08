@@ -29,24 +29,23 @@ char* getAlias(char* key) {
 }
 
 void mapAlias(char* name, char* toWord) {
+  const char* old_color = setTermColor(stderr, KRED);
   if (checkAliasExists(name)) {
-   const char* old_color = setTermColor(stderr, KRED);
     fprintf(stderr, "alias: alias already exists\n");
-    setTermColor(stderr, old_color);
   } else if (strcmp(name, toWord) == 0) {
-    const char* old_color = setTermColor(stderr, KRED);
     fprintf(stderr, "alias: cannot alias word to itself\n");
-    setTermColor(stderr, old_color);
-    return;
   } else if (isInfiniteAlias(name, toWord)) {
-    const char* old_color = setTermColor(stderr, KRED);
     fprintf(stderr, "alias: refusing infinite alias\n");
-    setTermColor(stderr, old_color);
+  } else if (strcmp(name, "alias") == 0) {
+    fprintf(stderr, "alias: cannot alias alias\n");
+  } else if (strcmp(name, "unalias") == 0) {
+    fprintf(stderr, "alias: cannot alias unalias\n");
   } else {
     alias_keys[alias_count] = strdup(name);
     alias_values[alias_count] = strdup(toWord);
     ++alias_count;
   }
+  setTermColor(stderr, old_color);
 }
 
 bool checkAliasExists(char* name) {
@@ -64,12 +63,13 @@ bool isInfiniteAlias(char* name, char* word) {
   strcpy(line, word);
   while (containsAlias(line)) {
     bool commandNext = TRUE;
-    char* substituted = (char*)malloc(MAX_LENGTH);
-    substituted[0] = '\0';
+    char* substituted = (char*)calloc(MAX_LENGTH, 1);
     char* token = strtok(line, " ");
     while (token) {
-      if (commandNext == TRUE && checkAliasExists(token) == TRUE) {
-        if (strcmp(name, getAlias(token)) == 0) {
+      if (commandNext == TRUE) {
+        // If token is an alias for word or is equal to word itself.
+        if (checkAliasExists(token) && strcmp(name, getAlias(token)) == 0 ||
+            strcmp(name, token) == 0) {
           free(line);
           free(substituted);
           return TRUE;
