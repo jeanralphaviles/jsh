@@ -169,6 +169,9 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         const char* oldColor = setTermColor(stderr, KRED);
         fprintf(stderr, "Cannot open %s as File IO_IN\n", io_in);
         setTermColor(stderr, oldColor);
+        fflush(stdin);
+        fclose(stdin);
+        stdin = fdopen(old_stdin, "r");
         return ERR_PERMISSION;
       }
     }
@@ -179,6 +182,9 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         const char* oldColor = setTermColor(stderr, KRED);
         fprintf(stderr, "Cannot open %s as File IO_OUT\n", io_out);
         setTermColor(stderr, oldColor);
+        fflush(stdout);
+        fclose(stdout);
+        stdout = fdopen(old_stdout, "w");
         return ERR_PERMISSION;
       }
     }
@@ -189,6 +195,9 @@ int executePipeSequence(struct AstPipeSequence* pipe_sequence) {
         const char* oldColor = setTermColor(stderr, KRED);
         fprintf(stderr, "Cannot open %s as File IO_ERR\n", io_err);
         setTermColor(stderr, oldColor);
+        fflush(stderr);
+        fclose(stderr);
+        stderr = fdopen(old_stderr, "w");
         return ERR_PERMISSION;
       } else {
         dup2(fd, STDERR_FILENO);
