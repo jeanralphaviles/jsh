@@ -10,6 +10,7 @@
 
 #include "aliastable.h"
 #include "defines.h"
+#include "utils.h"
 
 /* How to make dynamic arrays in C, I'm not sure.
  * For now I hope they don't make 1024 alias mappings. */
@@ -29,11 +30,23 @@ char* getAlias(char* key) {
 
 void mapAlias(char* name, char* toWord) {
   if (checkAliasExists(name)) {
+   const char* old_color = setTermColor(stderr, KRED);
+    fprintf(stderr, "alias: alias already exists\n");
+    setTermColor(stderr, old_color);
+  } else if (strcmp(name, toWord) == 0) {
+    const char* old_color = setTermColor(stderr, KRED);
+    fprintf(stderr, "alias: cannot alias word to itself\n");
+    setTermColor(stderr, old_color);
     return;
+  } else if (isInfiniteAlias(name, toWord)) {
+    const char* old_color = setTermColor(stderr, KRED);
+    fprintf(stderr, "alias: refusing infinite alias\n");
+    setTermColor(stderr, old_color);
+  } else {
+    alias_keys[alias_count] = strdup(name);
+    alias_values[alias_count] = strdup(toWord);
+    ++alias_count;
   }
-  alias_keys[alias_count] = strdup(name);
-  alias_values[alias_count] = strdup(toWord);
-  ++alias_count;
 }
 
 bool checkAliasExists(char* name) {
@@ -43,6 +56,38 @@ bool checkAliasExists(char* name) {
       return TRUE;
     }
   }
+  return FALSE;
+}
+
+bool isInfiniteAlias(char* name, char* word) {
+  char* line = (char*)calloc(MAX_LENGTH, 1);
+  strcpy(line, word);
+  while (containsAlias(line)) {
+    bool commandNext = TRUE;
+    char* substituted = (char*)malloc(MAX_LENGTH);
+    substituted[0] = '\0';
+    char* token = strtok(line, " ");
+    while (token) {
+      if (commandNext == TRUE && checkAliasExists(token) == TRUE) {
+        if (strcmp(name, getAlias(token)) == 0) {
+          free(line);
+          free(substituted);
+          return TRUE;
+        }
+        strcat(substituted, getAlias(token));
+        commandNext = FALSE;
+      } else {
+        strcat(substituted, token);
+        commandNext = isCommandSeparator(token);
+      }
+      strcat(substituted, " ");
+      token = strtok(NULL, " ");
+    }
+    strncpy(line, substituted, 1023);
+    line[MAX_LENGTH] = '\0';
+    free(substituted);
+  }
+  free(line);
   return FALSE;
 }
 

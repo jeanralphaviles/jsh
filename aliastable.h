@@ -15,7 +15,7 @@ void unmapAlias(char* name);
 void printAliasTable();
 char* getAlias(char* key);
 bool checkAliasExists(char* name);
-bool isInfiniteAlias(char* name);
+bool isInfiniteAlias(char* name, char* word);
 void aliasSub(char*);
 bool isCommandSeparator(char*);
 bool containsAlias(char*);

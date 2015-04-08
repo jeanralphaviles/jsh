@@ -1,9 +1,8 @@
-#include "ast.h"
-
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "ast.h"
 #include "aliastable.h"
 #include "defines.h"
 #include "utils.h"
