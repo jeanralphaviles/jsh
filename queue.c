@@ -32,7 +32,7 @@ void pop_back(struct queue* q) {
 
 void* front(struct queue* q) {
   if (q->head == NULL) {
-    fprintf(stderr, "Getting element from Empty Queue");
+    fprintf(stderr, "Getting element from Empty Queue\n");
     return NULL;
   } else {
     return frontQnode(q->head);
