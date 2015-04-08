@@ -20,10 +20,10 @@ EOF                               { exit(EXIT_SUCCESS); }
 >>                                { return DRBRKT; }
 [0-9]>                            { strcpy(yylval.string, yytext); return IO_NUMBER; }
 [|\(\)&;<>]                       { return yytext[0];  }
-\".*\"                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0'; inString = TRUE;
+\"(\\.|[^"])*\"                   { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0'; inString = TRUE;
                                     return WORD; }
-\'.*\'                            { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0'; inString = TRUE;
-                                    return WORD; }                         
+\'(\\.|[^'])*\'                   { yylval.string = strdup(yytext+1); yylval.string[strlen(yylval.string) - 1] = '\0'; inString = TRUE;
+                                    return WORD; }
 ([a-zA-Z0-9\-\*\.\/\$\{\}_~?:]*|(\\[\\\&|\<\>\"\' a-zA-Z0-9\$\{\}])*)+  { yylval.string = resolveEscapeSequences(expandVariables(strdup(yytext))); return WORD; }
 [ \t\r]+                          { ; } /* Ignore Whitespace */
 .                                 { ; } /* No Match */
