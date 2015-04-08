@@ -68,7 +68,7 @@ bool isInfiniteAlias(char* name, char* word) {
     while (token) {
       if (commandNext == TRUE) {
         // If token is an alias for word or is equal to word itself.
-        if (checkAliasExists(token) && strcmp(name, getAlias(token)) == 0 ||
+        if ((checkAliasExists(token) && strcmp(name, getAlias(token)) == 0) ||
             strcmp(name, token) == 0) {
           free(line);
           free(substituted);
