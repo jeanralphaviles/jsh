@@ -1,9 +1,10 @@
-#include <readline/history.h>
-#include <readline/readline.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include <readline/history.h>
+#include <readline/readline.h>
 
 #include "ast.h"
 #include "aliastable.h"
