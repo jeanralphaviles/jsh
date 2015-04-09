@@ -3,4 +3,5 @@ y.output
 lex.yy.c
 y.tab.*
 main
+shell
 *.o

@@ -1,5 +1,5 @@
-all: y.tab.o lex.yy.o main.o queue.o utils.o env.o aliastable.o builtins.o ast.o
-	cc lex.yy.o y.tab.o main.o queue.o utils.o env.o aliastable.o builtins.o ast.o -o main -g
+all: y.tab.o lex.yy.o shell.o queue.o utils.o env.o aliastable.o builtins.o ast.o
+	cc lex.yy.o y.tab.o shell.o queue.o utils.o env.o aliastable.o builtins.o ast.o -o shell -g
 
 y.tab.h: ast.h defines.h grammar.y
 	yacc -dv grammar.y
@@ -34,8 +34,8 @@ env.o: defines.h env.h env.c
 utils.o: defines.h utils.h utils.c
 	cc -c utils.c -g
 
-main.o: ast.h defines.h utils.h main.c
-	cc -c main.c -g
+shell.o: ast.h defines.h utils.h shell.c
+	cc -c shell.c -g
 
 clean:
-	rm -rf lex.yy.c y.tab.c y.tab.h main *.o *.output *.gch
+	rm -rf lex.yy.c y.tab.c y.tab.h shell *.o *.output *.gch
