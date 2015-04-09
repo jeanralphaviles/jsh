@@ -4,6 +4,7 @@
  *  Created on: Mar 15, 2015
  *      Author: Joseph Liccini
  */
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +31,15 @@ int executeBuiltinCommand(char* cmd, int argc, char** argv) {
     } else {
       sprintf(dest, "%s", getenv("HOME"));
     }
-    int val = chdir(dest);
+    if (chdir(dest) == -1) {
+      const char* oldColor = setTermColor(stderr, KRED);
+      if (errno == EACCES) {
+        fprintf(stderr, "cd: permission denied\n");
+      } else if (errno == ENOENT) {
+        fprintf(stderr, "cd: directory does not exist\n");
+      }
+      setTermColor(stderr, oldColor);
+    }
   } else if (strcmp(cmd, "alias") == 0) {
     if (argc == 3) {
       char* name = argv[1];
