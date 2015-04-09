@@ -70,18 +70,28 @@ static void printWelcome(void) {
 }
 
 static char* getPrompt() {
+  static char ignoreString[2] = {RL_PROMPT_START_IGNORE, '\0'};
+  static char allowString[2] = {RL_PROMPT_END_IGNORE, '\0'};
   static char* prompt;
   if (prompt != NULL) {
     free(prompt);
   }
   prompt = (char*)malloc(100);
-  strcpy(prompt, KCYN);
-  strcat(prompt, "jsh ");
-  strcat(prompt, KGRN);
-  strcat(prompt, (char*)getcwd(NULL, 0));
+  strcpy(prompt, ignoreString);
   strcat(prompt, KCYN);
+  strcat(prompt, allowString);
+  strcat(prompt, "jsh ");
+  strcat(prompt, ignoreString);
+  strcat(prompt, KGRN);
+  strcat(prompt, allowString);
+  strcat(prompt, (char*)getcwd(NULL, 0));
+  strcat(prompt, ignoreString);
+  strcat(prompt, KCYN);
+  strcat(prompt, allowString);
   strcat(prompt, " $ ");
+  strcat(prompt, ignoreString);
   strcat(prompt, KNRM);
+  strcat(prompt, allowString);
   return prompt;
 }
 

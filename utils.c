@@ -12,6 +12,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <readline/readline.h>
+
 #include "defines.h"
 #include "queue.h"
 #include "utils.h"
@@ -44,7 +46,7 @@ int isAbsolutePath(char* path) {
 const char* setTermColor(FILE* stream, const char* newColor) {
   const char* oldColor = currTermColor;
   currTermColor = newColor;
-  fprintf(stream, "%s", newColor);
+  fprintf(stream, "%c%s%c", RL_PROMPT_START_IGNORE, newColor, RL_PROMPT_END_IGNORE);
   return oldColor;
 }
 
