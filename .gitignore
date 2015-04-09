@@ -5,3 +5,5 @@ y.tab.*
 main
 shell
 *.o
+readline-6.3.tar.gz
+readline/*

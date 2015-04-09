@@ -1,3 +1,5 @@
+#include <readline/history.h>
+#include <readline/readline.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,8 +8,6 @@
 #include "ast.h"
 #include "aliastable.h"
 #include "defines.h"
-#include "readline/readline.h"
-#include "readline/history.h"
 #include "utils.h"
 
 extern int yyparse();
@@ -67,7 +67,7 @@ char* getPrompt() {
   strcpy(prompt, KCYN);
   strcat(prompt, "jsh ");
   strcat(prompt, KGRN);
-  strcat(prompt, (char*)(unsigned long)get_current_dir_name());
+  strcat(prompt, (char*)getcwd(NULL, 0));
   strcat(prompt, KCYN);
   strcat(prompt, " $ ");
   strcat(prompt, KNRM);
