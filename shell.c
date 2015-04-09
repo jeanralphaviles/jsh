@@ -16,9 +16,11 @@ extern struct AstRoot* astRoot;
 
 void init(void);
 char* getPrompt();
+void printWelcome(void);
 
 int main(int argc, char* argv[]) {
   init();
+  printWelcome();
   char* line;
   rl_bind_key('\t', rl_abort); // Disable tab to complete
   rl_bind_key('\e', rl_complete); // Set Esacpe to complete
@@ -56,6 +58,11 @@ void init(void) {
   signal(SIGINT, SIG_IGN);  /* disable ctrl-C */
   signal(SIGQUIT, SIG_IGN); /* disable ctrl-\ */
   signal(SIGTSTP, SIG_IGN); /* disable ctrl-Z */
+}
+
+void printWelcome(void) {
+	fprintf(stderr, "===========Welcome to JSH!===========\n");
+	fprintf(stderr, "Written by JR Aviles and Joe Liccini.\n");
 }
 
 char* getPrompt() {
