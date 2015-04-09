@@ -73,6 +73,7 @@ static char* getPrompt() {
   static char ignoreString[2] = {RL_PROMPT_START_IGNORE, '\0'};
   static char allowString[2] = {RL_PROMPT_END_IGNORE, '\0'};
   static char* prompt;
+  char* cwd = (char*)malloc(100);
   if (prompt != NULL) {
     free(prompt);
   }
@@ -84,7 +85,7 @@ static char* getPrompt() {
   strcat(prompt, ignoreString);
   strcat(prompt, KGRN);
   strcat(prompt, allowString);
-  strcat(prompt, (char*)getcwd(NULL, 0));
+  strcat(prompt, getcwd(cwd, 100));
   strcat(prompt, ignoreString);
   strcat(prompt, KCYN);
   strcat(prompt, allowString);
@@ -92,6 +93,9 @@ static char* getPrompt() {
   strcat(prompt, ignoreString);
   strcat(prompt, KNRM);
   strcat(prompt, allowString);
+  if (cwd != NULL) {
+    free(cwd);
+  }
   return prompt;
 }
 

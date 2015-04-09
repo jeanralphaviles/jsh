@@ -186,7 +186,7 @@ char* tildeExpand(char* path_name) {
   char* firstSlash; /* Pointer to first slash in path_name */
   if ((firstSlash = strchr(path_name, '/')) == NULL) {
     // Did not find a slash, set firstSlash to end of string
-    firstSlash = path_name + strlen(path_name) + 1;
+    firstSlash = path_name + strlen(path_name);
   }
   int usernameLength = firstSlash - path_name - 1;
   char* username = (char*)malloc(usernameLength + 1);

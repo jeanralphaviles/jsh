@@ -19,7 +19,8 @@
 int executeBuiltinCommand(char* cmd, int argc, char** argv) {
   int status = SUCCESS;
   if (strcmp(cmd, "cd") == 0) {
-    char* dest = (char*)malloc(MAX_LENGTH);
+    char* holdThis = (char*)malloc(MAX_LENGTH);
+    char* dest = holdThis;
     if (argc == 2) {
       dest = argv[1];
       fixPath(dest);
@@ -29,8 +30,9 @@ int executeBuiltinCommand(char* cmd, int argc, char** argv) {
       setTermColor(stderr, oldColor);
       status = ERROR;
     } else {
-      sprintf(dest, "%s", getenv("HOME"));
+      strncpy(dest, getenv("HOME"), MAX_LENGTH);
     }
+    trimGarbage(dest);
     if (chdir(dest) == -1) {
       const char* oldColor = setTermColor(stderr, KRED);
       if (errno == EACCES) {
@@ -40,6 +42,7 @@ int executeBuiltinCommand(char* cmd, int argc, char** argv) {
       }
       setTermColor(stderr, oldColor);
     }
+    free(holdThis);
   } else if (strcmp(cmd, "alias") == 0) {
     if (argc == 3) {
       char* name = argv[1];
@@ -120,3 +123,12 @@ bool isBuiltinPipeCommand(struct AstSingleCommand* command) {
   return FALSE;
 }
 
+void trimGarbage(char* line) {
+  int i = 0;
+  while(line[i]) {
+    if (line[i] > 127) {
+      line[i] = '\0';
+    }
+    ++i;
+  }
+}

@@ -31,13 +31,13 @@
 #define ENVIRONMENTAL_VARIABLE_REGEX "\\$\\{.*\\}"
 
 // Colors
-#define KNRM  "\x1B[0m"
-#define KRED  "\x1B[31m"
-#define KGRN  "\x1B[32m"
-#define KYEL  "\x1B[33m"
-#define KBLU  "\x1B[34m"
-#define KMAG  "\x1B[35m"
-#define KCYN  "\x1B[36m"
-#define KWHT  "\x1B[37m"
+#define KNRM  "\001\033[0m\002"
+#define KRED  "\001\033[31m\002"
+#define KGRN  "\001\033[32m\002"
+#define KYEL  "\001\033[33m\002"
+#define KBLU  "\001\033[34m\002"
+#define KMAG  "\001\033[35m\002"
+#define KCYN  "\001\033[36m\002"
+#define KWHT  "\001\033[37m\002"
 
 #endif
