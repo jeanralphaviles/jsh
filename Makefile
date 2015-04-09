@@ -32,7 +32,7 @@ env.o: defines.h env.h env.c
 	cc -c env.c -g
 
 utils.o: defines.h utils.h utils.c
-	cc -c utils.c -g
+	cc -I$(PWD)/readline/include -c utils.c -g
 
 shell.o: ast.h defines.h utils.h shell.c
 	cc -I$(PWD)/readline/include -c shell.c -lreadline -g
