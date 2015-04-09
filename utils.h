@@ -16,5 +16,6 @@ int isMetaCharacter(char character);
 int isEscapeCharacter(char character);
 char** wildcardMatch(char*, char**, bool*, char*);
 char* tildeExpand(char*);
+char* stripwhite (char *);
 
 #endif /* UTILS_H_ */

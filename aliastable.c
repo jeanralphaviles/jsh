@@ -130,8 +130,11 @@ void printAliasTable() {
 }
 
 void aliasSub(char* line) {
-  // Strip newline
-  line[strlen(line) - 1] = '\0';
+  // Strip newline if needed
+  bool newline = line[strlen(line) - 1] == '\n';
+  if (newline) {
+    line[strlen(line) - 1] = '\0';
+  }
   while (containsAlias(line)) {
     bool commandNext = TRUE;
     char* substituted = (char*)malloc(MAX_LENGTH);
@@ -152,8 +155,10 @@ void aliasSub(char* line) {
     line[MAX_LENGTH] = '\0';
     free(substituted);
   }
-  // Re-add newline
-  strcpy(line + strlen(line), "\n\0");
+  // Re-add newline if needed
+  if (newline) {
+    strcpy(line + strlen(line), "\n\0");
+  }
 }
 
 bool isCommandSeparator(char* word) {
@@ -165,7 +170,7 @@ bool isCommandSeparator(char* word) {
 }
 
 bool containsAlias(char* line) {
-  char* savedLine = (char*)malloc(strlen(line) + 1);
+  char* savedLine = (char*)calloc(strlen(line) + 1, 1);
   strcpy(savedLine, line);
   bool commandNext = TRUE;
   char* word = strtok(line, " ");

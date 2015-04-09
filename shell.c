@@ -1,10 +1,13 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "ast.h"
 #include "aliastable.h"
 #include "defines.h"
+#include "readline/readline.h"
+#include "readline/history.h"
 #include "utils.h"
 
 extern int yyparse();
@@ -12,24 +15,28 @@ extern int yy_scan_string(const char *);
 extern struct AstRoot* astRoot;
 
 void init(void);
+char* getPrompt();
 
 int main(int argc, char* argv[]) {
-  char line[MAX_LENGTH];
   init();
+  char* line;
+  rl_bind_key('\t', rl_abort); // Disable tab to complete
+  rl_bind_key('\e', rl_complete); // Set Esacpe to complete
 
-  while (1) {
-    setTermColor(stderr, KCYN);
-    fprintf(stderr, "jsh> ");
-    setTermColor(stderr, KNRM);
-    if (!fgets(line, MAX_LENGTH, stdin)) {
-      break;
+  while ((line = readline(getPrompt())) != NULL) {
+    if (strlen(line) == 0 || strcmp(line, "\n") == 0) {
+      continue;
     }
-    aliasSub(line);
+    char* cmdline = (char*)malloc(MAX_LENGTH);
+    strcpy(cmdline, line);
+    aliasSub(cmdline);
+    astRoot = NULL;
 
-    int buf = yy_scan_string(line);
+    int buf = yy_scan_string(cmdline);
     int returnVal = yyparse();
     if (returnVal == 0) {
       if (astRoot != NULL) {
+        add_history(line);
         executeAstRoot(astRoot);
         free(astRoot); // Huge memory leak here :)
       }
@@ -38,6 +45,9 @@ int main(int argc, char* argv[]) {
       fprintf(stderr, "An error occurred\n");
       setTermColor(stderr, oldTermColor);
     }
+    setTermColor(stderr, KCYN);
+    free(cmdline);
+    free(line);
   }
   return 0;
 }
@@ -46,4 +56,20 @@ void init(void) {
   signal(SIGINT, SIG_IGN);  /* disable ctrl-C */
   signal(SIGQUIT, SIG_IGN); /* disable ctrl-\ */
   signal(SIGTSTP, SIG_IGN); /* disable ctrl-Z */
+}
+
+char* getPrompt() {
+  static char* prompt;
+  if (prompt != NULL) {
+    free(prompt);
+  }
+  prompt = (char*)malloc(100);
+  strcpy(prompt, KCYN);
+  strcat(prompt, "jsh ");
+  strcat(prompt, KGRN);
+  strcat(prompt, (char*)(unsigned long)get_current_dir_name());
+  strcat(prompt, KCYN);
+  strcat(prompt, " $ ");
+  strcat(prompt, KNRM);
+  return prompt;
 }
