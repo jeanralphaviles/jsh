@@ -15,9 +15,10 @@ extern int yyparse();
 extern int yy_scan_string(const char *);
 extern struct AstRoot* astRoot;
 
-void init(void);
-char* getPrompt();
-void printWelcome(void);
+static void init(void);
+static char* getPrompt();
+static void printWelcome(void);
+static void printRainbow(char*);
 
 int main(int argc, char* argv[]) {
   init();
@@ -55,18 +56,20 @@ int main(int argc, char* argv[]) {
   return 0;
 }
 
-void init(void) {
+static void init(void) {
   signal(SIGINT, SIG_IGN);  /* disable ctrl-C */
   signal(SIGQUIT, SIG_IGN); /* disable ctrl-\ */
   signal(SIGTSTP, SIG_IGN); /* disable ctrl-Z */
 }
 
-void printWelcome(void) {
-	fprintf(stderr, "===========Welcome to JSH!===========\n");
-	fprintf(stderr, "Written by JR Aviles and Joe Liccini.\n");
+static void printWelcome(void) {
+  printRainbow("===========");
+  fprintf(stderr, "%sWelcome to %sJSH%s", KRED, KRED, KNRM);
+  printRainbow("===========\n");
+  fprintf(stderr, "Written by JR Aviles and Joe Liccini.\n\n");
 }
 
-char* getPrompt() {
+static char* getPrompt() {
   static char* prompt;
   if (prompt != NULL) {
     free(prompt);
@@ -80,4 +83,19 @@ char* getPrompt() {
   strcat(prompt, " $ ");
   strcat(prompt, KNRM);
   return prompt;
+}
+
+static void printRainbow(char* line) {
+  static int size = 7;
+  static int colorIndex = 0;
+  static char* colors[] = {
+    KRED, KGRN, KYEL, KBLU, KMAG, KCYN, KWHT
+  };
+  int i = 0;
+  while (line[i]) {
+    fprintf(stderr, "%s%c", colors[colorIndex % size], line[i]);
+    ++i;
+    ++colorIndex;
+  }
+  fprintf(stderr, "%s", KNRM);
 }
