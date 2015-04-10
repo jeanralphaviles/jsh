@@ -10,5 +10,3 @@ if [ ! -d "readline" ]; then
 fi
 
 cd readline && ./configure --prefix=$PWD && make && make install
-cd ..
-make

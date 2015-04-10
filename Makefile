@@ -1,5 +1,8 @@
-all: y.tab.o lex.yy.o shell.o queue.o utils.o env.o aliastable.o builtins.o ast.o
+all: download y.tab.o lex.yy.o shell.o queue.o utils.o env.o aliastable.o builtins.o ast.o
 	cc -L$(PWD)/readline/lib/ lex.yy.o y.tab.o shell.o queue.o utils.o env.o aliastable.o builtins.o ast.o -lreadline -ltermcap -lncurses -o shell -g
+
+download: 
+	sh configure.sh
 
 y.tab.h: ast.h defines.h grammar.y
 	yacc -dv grammar.y
@@ -38,4 +41,4 @@ shell.o: ast.h defines.h utils.h shell.c
 	cc -I$(PWD)/readline/include -c shell.c -lreadline -g
 
 clean:
-	rm -rf lex.yy.c y.tab.c y.tab.h main shell *.o *.output *.gch
+	sh cleanup.sh	
