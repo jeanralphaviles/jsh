@@ -55,13 +55,13 @@ void unsetEnv(const char* variable) {
 }
 
 char* expandVariables(char* word) {
-  char* copy = malloc(MAX_LENGTH);
+  char* copy = (char*) calloc(MAX_LENGTH,1);
   int copyPtr = 0;
   int i;
 
   for (i = 0; i < MAX_LENGTH && word[i] != '\0'; ++i) {
-    if (word[i] == '$' && (i + 1) != '\0' && word[i + 1] == '{') {
-      char* envVar = malloc(MAX_LENGTH);
+    if (word[i] == '$' && word[i + 1] != '\0' && word[i + 1] == '{') {
+      char* envVar = (char*) calloc(MAX_LENGTH, 1);
       int envVarPtr = 0;
       i += 2;
       while (i < MAX_LENGTH && word[i] != '\0' && word[i] != '}') {
@@ -70,9 +70,15 @@ char* expandVariables(char* word) {
         ++i;
         if (word[i] == '}') {
           envVar[envVarPtr] = '\0';
-          char* temp = malloc(MAX_LENGTH);
+          char* temp = (char*) calloc(MAX_LENGTH, 1);
           if (getenv(envVar) != NULL) {
             sprintf(temp, "%s", getenv(envVar));
+			int j;
+			for (j = 0; j < strlen(temp); ++j) {
+			    copy[copyPtr] = temp[j];
+			    ++copyPtr;
+			}
+			free(temp);
           }
 
           // No env var found, return ${VAR}
@@ -81,18 +87,11 @@ char* expandVariables(char* word) {
             strcat(temp, envVar);
             strcat(temp, "}");
           }
-
-          int j;
-          for (j = 0; j < strlen(temp); ++j) {
-            copy[copyPtr] = temp[j];
-            ++copyPtr;
-          }
-          free(temp);
           free(envVar);
           envVarPtr = 0;
         }
       }
-      ++i;
+      // ++i;
     }
     else {
       copy[copyPtr] = word[i];
