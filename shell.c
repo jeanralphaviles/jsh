@@ -70,8 +70,8 @@ static void printWelcome(void) {
 }
 
 static char* getPrompt() {
-  static char ignoreString[2] = {RL_PROMPT_START_IGNORE, '\0'};
-  static char allowString[2] = {RL_PROMPT_END_IGNORE, '\0'};
+  static const char ignoreString[2] = {RL_PROMPT_START_IGNORE, '\0'};
+  static const char allowString[2] = {RL_PROMPT_END_IGNORE, '\0'};
   static char* prompt;
   char* cwd = (char*)malloc(100);
   if (prompt != NULL) {
